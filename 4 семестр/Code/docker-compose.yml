@@ -1,0 +1,75 @@
+name: museum_project
+
+services:
+  db:
+    image: postgres:17
+    container_name: museum_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./queries:/queries
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: . # Dockerfile в корне проекта
+    container_name: museum_backend
+
+    stdin_open: true
+    tty: true
+
+    env_file: .env
+    environment:
+      DB_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy # ждет, пока postgres пройдёт healthcheck
+    command: python main.py
+
+  plots:
+    build: .
+    container_name: museum_plots
+    profiles:
+      - plots
+    env_file: .env
+    environment:
+      DB_HOST: db
+      QUERIES_DIR: /queries
+      PLOTS_OUTPUT_DIR: /plots/output
+    volumes:
+      - ./queries:/queries:ro
+      - ./plots:/plots
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["python", "/plots/plot_histograms.py"]
+
+  explain:
+    build: .
+    container_name: museum_explain
+    profiles:
+      - explain
+    env_file: .env
+    environment:
+      DB_HOST: db
+      QUERIES_DIR: /queries
+      EXPLAIN_OUTPUT_DIR: /explain/output
+    volumes:
+      - ./queries:/queries:ro
+      - ./explain:/explain
+    depends_on:
+      db:
+        condition: service_healthy
+    entrypoint: ["python", "/explain/explain_queries.py"]
+
+volumes:
+  postgres_data:

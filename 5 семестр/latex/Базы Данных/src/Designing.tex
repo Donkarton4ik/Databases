@@ -1,0 +1,1402 @@
+\noindent
+{\Large \textbf{\section{Проектирование}}} \par
+
+% =============================================================
+% СПРАВОЧНИКИ
+% =============================================================
+{\Large \textbf{\subsection{Лингвистическое описание схемы БД}}} \par
+
+
+\begin{enumerate}
+    \item exhibition\_status (exhibition\_status\_id (SERIAL), \\ exhibition\_status\_name (VARCHAR(11))).
+    \item exhibition\_type (exhibition\_type\_id (SERIAL), exhibition\_type\_name \\(VARCHAR(15))).
+    \item exhibition\_subject (exhibition\_subject\_id (SERIAL), exhibition\_subject\_name (VARCHAR(25))).
+    \item exhibit\_status (exhibit\_status\_id (SERIAL), exhibit\_status\_name \\(VARCHAR(25))).
+    \item materials (material\_id (SERIAL), material\_name (VARCHAR(25))).
+    \item exhibit\_conditions (exhibit\_conditions\_id (SERIAL), exhibit\_conditions\_name (VARCHAR(18))).
+    \item epochs (epoch\_id (SERIAL), epoch\_name (VARCHAR(30))).
+    \item temp\_categories (temp\_category\_id (SERIAL), temp\_category\_name \\(VARCHAR(9)), min\_value (DECIMAL(4,2)), max\_value (DECIMAL(4,2))).
+    \item humidity\_categories (humidity\_category\_id (SERIAL), humidity\_category\_name (VARCHAR(10)), min\_value (DECIMAL(5,2)), max\_value (DECIMAL(5,2))).
+    \item lighting\_categories (lighting\_category\_id (SERIAL), \\ lighting\_category\_name (VARCHAR(7)), min\_value (DECIMAL(7,2)), max\_value (DECIMAL(7,2))).
+    \item room\_type (room\_type\_id (SERIAL), room\_type\_name (VARCHAR(132))).
+    \item employees (employee\_id (SERIAL), first\_name (VARCHAR(60)), \\ last\_name (VARCHAR(60)), middle\_name (VARCHAR(60)), \\ phone\_number (VARCHAR(15))).
+    \item exhibits (exhibit\_id (SERIAL), exhibit\_status\_id (INT), exhibit\_name \\(VARCHAR(200))).
+    \item exhibitions (exhibition\_id (SERIAL), exhibition\_status\_id (INT), \\exhibition\_type\_id (INT), exhibition\_subject\_id (INT), \\ exhibition\_name (VARCHAR(150))).
+    \item exhibition\_spaces (exhibition\_space\_id (SERIAL), room\_type\_id (INT), \\ visitor\_capacity (INT), ceiling\_height (DECIMAL(4,2)), area (DECIMAL(7,2))).
+    \item passports (passport\_id (SERIAL), employee\_id (INT), exhibit\_id (INT), \\ condition\_id (INT), epoch\_id (INT), req\_temp\_category\_id (INT), \\ req\_humidity\_category\_id (INT), req\_lighting\_category\_id (INT), \\ weight (DECIMAL(8,3)), passport\_version (INT)).
+    \item exhibition\_curators (curator\_id (SERIAL), employee\_id (INT), exhibition\_id (INT)).
+    \item display\_places (display\_place\_id (SERIAL), exhibition\_space\_id (INT), \\temp\_category\_id (INT), humidity\_category\_id (INT), lighting\_category\_id (INT), place\_name (VARCHAR(50))).
+    \item exhibit\_materials (material\_in\_passport\_id (SERIAL), passport\_id (INT), \\ material\_id (INT)).
+    \item exhibit\_placements (exhibit\_placement\_id (SERIAL), \\ exhibit\_id (INT), exhibition\_id (INT), display\_place\_id (INT)).
+\end{enumerate}
+
+\vspace{-30pt}
+
+{\Large \textbf{\subsection{Атрибуты таблиц БД}}} \par
+
+
+% 1. exhibition_status
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak статуса\_\allowbreak выставки & exhibition\_\allowbreak status\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Статус\_\allowbreak выставки & exhibition\_\allowbreak status\_\allowbreak name & VARCHAR (11) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Статус выставки - Exhibition Status}
+\end{table}
+
+\noindent Поле exhibition\_status\_name хранит статус выставки.
+Определены следующие значения:
+\begin{enumerate}
+    \item Планируется
+    \item Активна
+    \item Завершена
+    \item Отменена
+\end{enumerate}
+Самое длинное значение <<Планируется>> содержит 11~символов.
+
+
+% 2. exhibition_type
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak типа\_\allowbreak выставки & exhibition\_\allowbreak type\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Тип\_\allowbreak выставки & exhibition\_\allowbreak type\_\allowbreak name & VARCHAR (15) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Тип выставки - Exhibition Type}
+\end{table}
+
+\noindent Поле exhibition\_type\_name хранит организационный формат выставки.
+Определены следующие значения:
+\begin{enumerate}
+    \item Cозерцательный
+    \item Тематический
+    \item Средовой
+    \item Систематический
+    \item Интерактивный
+    \item Прикладной
+\end{enumerate}
+Самое длинное значение <<Систематический>> содержит 15~символов.
+
+
+% 3. exhibition_subject
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & Id\_\allowbreak тематики & exhibition\_\allowbreak subject\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Тематика & exhibition\_\allowbreak subject\_\allowbreak name & VARCHAR (25) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Тематика - Exhibition Subject}
+\end{table}
+
+\noindent Для тематик определены следующие значения:
+\begin{enumerate}
+    \item Военная история
+    \item Быт
+    \item Религия
+    \item Нумизматика
+    \item Этнография
+\end{enumerate}
+Самое длинное значение <<Военная история>> содержит 15~символов, однако
+VARCHAR(25) выбран с запасом.
+
+
+% 4. exhibit_status
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak статуса\_\allowbreak экспоната & exhibit\_\allowbreak status\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Статус\_\allowbreak экспоната & exhibit\_\allowbreak status\_\allowbreak name & VARCHAR (25) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Статус экспоната - Exhibit Status}
+\end{table}
+
+\noindent Поле exhibit\_status\_name отражает местонахождение и состояние учёта экспоната.
+Определены следующие значения:
+\begin{enumerate}
+    \item В хранилище
+    \item На выставке
+    \item На реставрации
+    \item Утерян
+\end{enumerate}
+Самое длинное значение <<На реставрации>> содержит 14~символов, однако VARCHAR(25) выбран с запасом (для добавления новых статусов).
+
+
+% 5. materials
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak материала & material\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Материал & material\_\allowbreak name & VARCHAR (25) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Материалы - Materials}
+\end{table}
+
+\noindent Поле material\_name хранит наименование материала изготовления экспоната.
+Определены следующие базовые значения:
+\begin{enumerate}
+    \item Дерево
+    \item Металл
+    \item Керамика
+    \item Ткань
+    \item Бумага
+    \item Камень
+    \item Стекло
+\end{enumerate}
+Самое длинное текущее значение
+<<Керамика>> содержит 8~символов, однака VARCHAR(25) выбран с существенным
+запасом для расширения списка.
+
+
+% 6. exhibit_conditions
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak состояния\_\allowbreak экспоната & exhibit\_\allowbreak conditions\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Состояние\_\allowbreak экспоната & exhibit\_\allowbreak conditions\_\allowbreak name & VARCHAR (18) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Состояния экспонатов - Exhibit Conditions}
+\end{table}
+
+\noindent Поле exhibit\_conditions\_name хранит оценку физического состояния предмета.
+Градация соответствует общепринятой в российской музейной практике
+(инструкция по учёту и хранению музейных ценностей, утверждённая
+Министерством культуры СССР в 1984~г. и применяемая по сей день).
+Определены следующие значения:
+\begin{enumerate}
+    \item Отличное
+    \item Хорошее
+    \item Удовлетворительное
+    \item Плохое
+    \item Критическое
+\end{enumerate}
+Самое длинное значение <<Удовлетворительное>> содержит 18~символов.
+
+
+% 7. epochs
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak эпохи & epoch\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Название\_\allowbreak эпохи & epoch\_\allowbreak name & VARCHAR (30) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Эпохи - Epochs}
+\end{table}
+
+\noindent Поле epoch\_name хранит историческую эпоху происхождения экспоната.
+Определены следующие значения:
+\begin{enumerate}
+    \item Древний мир
+    \item Средневековье
+    \item Возрождение
+    \item Новое время
+    \item Новейшее время
+    \item Современность
+\end{enumerate}
+Самое длинное значение <<Новейшее время>> содержит 14~символов, однако
+VARCHAR(30) выбран с запасом (для возможности выделения более маленьких временных промежутков).
+
+
+% 8. temp_categories
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak категории\_\allowbreak температуры & temp\_\allowbreak category\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Названние\_\allowbreak категории & temp\_\allowbreak category\_\allowbreak name & VARCHAR (9) & NOT NULL & - \\
+\hline
+3 & - & Мин\_\allowbreak температура & min\_\allowbreak value & DECIMAL (4,2) & NULL & - \\
+\hline
+4 & - & Макс\_\allowbreak температура & max\_\allowbreak value & DECIMAL (4,2) & NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Температура - Temperature Categories}
+\end{table}
+
+\noindent Таблица задаёт категории температурного режима хранения.
+Определены следующие значения:
+\begin{enumerate}
+    \item Низкая (до $+5$\,°C)
+    \item Умеренная ($+5$\,..\,$+18$\,°C)
+    \item Комнатная ($+18$\,..\,$+25$\,°C)
+    \item Высокая (выше $+25$\,°C)
+\end{enumerate}
+Диапазоны основаны на требованиях предусмотренных ГОСТ-ами Российской Федерации.
+DECIMAL(4,2) позволяет хранить значения в диапазоне от $-9{,}99$ до
+$+9{,}99$\,°C, что позволяет хранить информацию о температуре
+с точностью до $0{,}01$\,°C. Самое длинное
+значение <<Умеренная>> в названии содержит 9~символов.
+
+
+% 9. humidity_categories
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak категории\_\allowbreak влажности & humidity\_\allowbreak category\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Названние\_\allowbreak категории & humidity\_\allowbreak category\_\allowbreak name & VARCHAR (10) & NOT NULL & - \\
+\hline
+3 & - & Мин\_\allowbreak влажность & min\_\allowbreak value & DECIMAL (5,2) & NULL & - \\
+\hline
+4 & - & Макс\_\allowbreak влажность & max\_\allowbreak value & DECIMAL (5,2) & NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Влажность - Humidity Categories}
+\end{table}
+
+\noindent Таблица задаёт категории относительной влажности воздуха (в процентах).
+Определены следующие значения:
+\begin{enumerate}
+    \item Сухо (< 30\,\%)
+    \item Норма (30 - 60\,\%)
+    \item Повышенная (60 - 75\,\%)
+    \item Опасная (> 75\,\%)
+\end{enumerate}
+DECIMAL(5,2) перекрывает диапазон $0{,}00$\,..\,$100{,}00$\,\%
+с точностью $0{,}01$\,\%. Самое длинное
+значение <<Повышенная>> в названии содержит 10~символов.
+
+
+% 10. lighting_categories
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak категории\_\allowbreak освещенности & lighting\_\allowbreak category\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Названние\_\allowbreak категории & lighting\_\allowbreak category\_\allowbreak name & VARCHAR (7) & NOT NULL & - \\
+\hline
+3 & - & Мин\_\allowbreak освещенность & min\_\allowbreak value & DECIMAL (7,2) & NULL & - \\
+\hline
+4 & - & Макс\_\allowbreak освещенность & max\_\allowbreak value & DECIMAL (7,2) & NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Освещённость - Lighting Categories}
+\end{table}
+
+\noindent Таблица определяет категории освещённости в люксах (лк).
+Определены следующие значения:
+\begin{enumerate}
+    \item Темное (0 - 50\,лк)
+    \item Слабое (50 - \,150\,лк)
+    \item Среднее (150 - \,300\,лк)
+    \item Яркое (> 300\,лк)
+\end{enumerate}
+Нормы основаны на рекомендациях международной комиссии по освещению: для светочувствительных экспонатов (акварель, ткань) не более
+50\,лк, для живописи до 150\,лк, для скульптуры и металла до 300\,лк
+и выше. DECIMAL(7,2) позволяет хранить значения до $99999{,}99$\,лк
+с точностью до $0{,}01$\,лк, чего достаточно для любых условий
+музейного освещения. Таблица используется в passports.
+
+
+% 11. room_type
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak типа\_\allowbreak помещения & room\_\allowbreak type\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Тип\_\allowbreak помещения & room\_\allowbreak type\_\allowbreak name & VARCHAR (132) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Тип помещения - Room Type}
+\end{table}
+
+\noindent Поле room\_type\_name хранит архитектурно-функциональный тип помещения.
+Определены следующие значения:
+\begin{enumerate}
+    \item Зал
+    \item Галерея
+    \item Атриум
+    \item Подвал
+\end{enumerate}
+VARCHAR(132) выбран с запасом на возможное уточнение формулировок.
+
+
+% 12. employees
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak сотрудника & employee\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & - & Имя & first\_\allowbreak name & VARCHAR (60) & NOT NULL & - \\
+\hline
+3 & - & Фамилия & last\_\allowbreak name & VARCHAR (60) & NOT NULL & - \\
+\hline
+4 & - & Отчество & middle\_\allowbreak name & VARCHAR (60) & NULL & - \\
+\hline
+5 & - & Номер\_\allowbreak телефона & phone\_\allowbreak number & VARCHAR (15) & NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Сотрудники - Employees}
+\end{table}
+
+\noindent Поля first\_name, last\_name и middle\_name должны иметь длину 60 символов, согласно приказу ФНС России от 18.12.2012 \cite{site:sources5}. Поэтому был выбран формат \\ VARCHAR(60). Отчество допускает NULL,
+поскольку ряд сотрудников может не иметь отчества
+(иностранные граждане).
+
+\noindent Поле phone\_number: международный стандарт ITU‑T E.164 задаёт
+максимальную длину номера в 15~символов.
+
+
+% 13. exhibits
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak экспоната & exhibit\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_\allowbreak статуса\_\allowbreak экспоната & exhibit\_\allowbreak status\_\allowbreak id & INT & NOT NULL & exhibit\_\allowbreak status (exhibit\_\allowbreak status\_\allowbreak id) \\
+\hline
+3 & - & Название & exhibit\_\allowbreak name & VARCHAR (200) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Экспонаты - Exhibits}
+\end{table}
+
+\noindent Поле exhibit\_name хранит полное музейное наименование предмета.
+В музейной инвентарной практике наименование экспоната обычно состоит из вида
+предмета, техники и краткого описания, например <<Сабля офицерская
+с золоченой гардой, Россия, XIX~в.>>. VARCHAR(200) выбран для возможности составления развернутых описаний.
+
+
+% 14. exhibitions
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak выставки & exhibition\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_\allowbreak статуса\_\allowbreak выставки & exhibition\_\allowbreak status\_\allowbreak id & INT & NULL & exhibition\_\allowbreak status (exhibition\_\allowbreak status\_\allowbreak id) \\
+\hline
+3 & FK & id\_\allowbreak типа\_\allowbreak выставки & exhibition\_\allowbreak type\_\allowbreak id & INT & NULL & exhibition\_\allowbreak type (exhibition\_\allowbreak type\_\allowbreak id) \\
+\hline
+4 & FK & id\_\allowbreak тематики & exhibition\_\allowbreak subject\_\allowbreak id & INT & NULL & exhibition\_\allowbreak subject (exhibition\_\allowbreak subject\_\allowbreak id) \\
+\hline
+5 & - & Название & exhibition\_\allowbreak name & VARCHAR (150) & NOT NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Выставки - Exhibitions}
+\end{table}
+
+\noindent Поле exhibition\_name хранит официальное название выставки. VARCHAR(150) выбран достаточным для развёрнутых названий. Поля exhibition\_status\_id, \\ exhibition\_subject\_id и exhibition\_type\_id
+допускают NULL, т.к. выставка может быть внесена в систему на стадии замысла,
+до того как все атрибуты определены.
+
+
+% 15. exhibition_spaces
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_выставоч-ного\_\allowbreak пространства & exhibition\_\allowbreak space\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_\allowbreak типа\_\allowbreak помещения & room\_\allowbreak type\_\allowbreak id & INT & NULL & room\_\allowbreak type (room\_\allowbreak type\_\allowbreak id) \\
+\hline
+3 & - & Вместимость\_\allowbreak посетителей & visitor\_\allowbreak capacity & INT & NULL & - \\
+\hline
+4 & - & Высота\_\allowbreak потолка & ceiling\_\allowbreak height & DECIMAL (4,2) & NULL & - \\
+\hline
+5 & - & Площадь & area & DECIMAL (7,2) & NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Выставочное пространство - Exhibition Spaces}
+\end{table}
+
+\noindent Поле visitor\_capacity: INT, так как количество людей является
+целым числом, при этом NULL допускается, если вместимость официально не определена.
+Поле ceiling\_height DECIMAL(4,2) позволяет хранить значения до
+$99{,}99$\,м с точностью до 1\,см. Реальные высоты потолков музейных
+залов укладываются в диапазон $2{,}50$\,..\,$15{,}00$\,м, тип выбран
+с запасом. Поле area DECIMAL(7,2) позволяет хранить значения до
+$99999{,}99$\,м$^2$, что перекрывает площади даже самых крупных
+музейных пространств мира, например общая площадь музейного комплекса Эрмитажа  233 345м$^2$.
+
+
+% 16. passports
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak паспорта & passport\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_\allowbreak сотрудника & employee\_\allowbreak id & INT & NOT NULL & employees (employee\_\allowbreak id) \\
+\hline
+3 & FK & id\_\allowbreak экспоната & exhibit\_\allowbreak id & INT & NOT NULL & exhibits (exhibit\_\allowbreak id) \\
+\hline
+4 & FK & id\_\allowbreak состояния\_\allowbreak экспоната & condition\_\allowbreak id & INT & NULL & exhibit\_\allowbreak conditions (exhibit\_\allowbreak conditions\_\allowbreak id) \\
+\hline
+5 & FK & id\_\allowbreak эпохи & epoch\_\allowbreak id & INT & NULL & epochs (epoch\_\allowbreak id) \\
+\hline
+6 & FK & id\_\allowbreak категории\_\allowbreak температуры & req\_\allowbreak temp\_\allowbreak category\_\allowbreak id & INT & NULL & temp\_\allowbreak categories (temp\_\allowbreak category\_\allowbreak id) \\
+\hline
+7 & FK & id\_\allowbreak категории\_\allowbreak влажности & req\_\allowbreak humidity\_\allowbreak category\_\allowbreak id & INT & NULL & humidity\_\allowbreak categories (humidity\_\allowbreak category\_\allowbreak id) \\
+\hline
+8 & FK & id\_\allowbreak категории\_\allowbreak освещенности & req\_\allowbreak lighting\_\allowbreak category\_\allowbreak id & INT & NULL & lighting\_\allowbreak categories (lighting\_\allowbreak category\_\allowbreak id) \\
+\hline
+9 & - & Вес & weight & DECIMAL (8,3) & NULL & - \\
+\hline
+10 & - & Версия\_\allowbreak паспорта & passport\_\allowbreak version & INT & NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Технические паспорта - Passports}
+\end{table}
+
+\noindent Поле weight: музейные экспонаты варьируются от монет весом в несколько
+граммов до скульптур весом в сотни килограммов. DECIMAL(8,3) позволяет хранить
+значения до $99999{,}999$\,кг с точностью до 1~грамма. Поля req\_temp\_category\_id,
+req\_humidity\_category\_id и req\_lighting\_category\_id хранят ссылки на категории из соответствующих
+словарей: на практике условия хранения задаются
+диапазонами, а не единственным значением. Все три поля
+допускают NULL — паспорт может быть оформлен до проведения экспертизы
+условий хранения. Поля condition\_id и epoch\_id допускают NULL аналогично.
+
+
+% 17. exhibition_curators
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak куратора\_\allowbreak выставок & curator\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_\allowbreak сотрудника & employee\_\allowbreak id & INT & NOT NULL & employees (employee\_\allowbreak id) \\
+\hline
+3 & FK & id\_\allowbreak выставки & exhibition\_\allowbreak id & INT & NOT NULL & exhibitions (exhibition\_\allowbreak id) \\
+\hline
+\end{tabularx}}
+\caption{Кураторы выставок - Exhibition Curators}
+\end{table}
+
+\noindent Таблица реализует связь многие-ко-многим между сотрудниками и выставками. Один сотрудник может курировать несколько выставок, у одной выставки может быть несколько кураторов. Текстовых полей нет.
+
+
+% 18. display_places
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak места\_\allowbreak экспониро-вания & display\_\allowbreak place\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_выставоч-ного\_\allowbreak пространства & exhibition\_\allowbreak space\_\allowbreak id & INT & NOT NULL & exhibition\_\allowbreak spaces (exhibition\_\allowbreak space\_\allowbreak id) \\
+\hline
+3 & FK & id\_\allowbreak категории\_\allowbreak температуры & temp\_\allowbreak category\_\allowbreak id & INT & NULL & temp\_\allowbreak categories (temp\_\allowbreak category\_\allowbreak id) \\
+\hline
+4 & FK & id\_\allowbreak категории\_\allowbreak влажности & humidity\_\allowbreak category\_\allowbreak id & INT & NULL & humidity\_\allowbreak categories (humidity\_\allowbreak category\_\allowbreak id) \\
+\hline
+5 & FK & id\_\allowbreak категории\_\allowbreak освещенности & lighting\_\allowbreak category\_\allowbreak id & INT & NULL & lighting\_\allowbreak categories (lighting\_\allowbreak category\_\allowbreak id) \\
+\hline
+6 & - & Тип & place\_\allowbreak name & VARCHAR (50) & NULL & - \\
+\hline
+\end{tabularx}}
+\caption{Места экспонирования - Display Places}
+\end{table}
+
+\noindent Поле place\_name хранит описание конкретного места экспонирования внутри выставочного пространства (витрина, подиум, стена, постамент и т.д.). VARCHAR(50) оставлен строкой, поскольку перечень типов мест экспонирования не является жёстко фиксированным и зависит от конкретной экспозиции. Поля temp\_category\_id, humidity\_category\_id и lighting\_category\_id хранят ссылки на соответствующие словари, отражая измеренные показатели микроклимата непосредственно в месте экспонирования.
+
+
+% 19. exhibit_materials
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak материала\_\allowbreak экспоната & material\_\allowbreak in\_\allowbreak passport\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_\allowbreak паспорта & passport\_\allowbreak id & INT & NOT NULL & passports (passport\_\allowbreak id) \\
+\hline
+3 & FK & id\_\allowbreak материала & material\_\allowbreak id & INT & NOT NULL & materials (material\_\allowbreak id) \\
+\hline
+\end{tabularx}}
+\caption{Материалы экспонатов - Exhibit Materials}
+\end{table}
+
+\noindent Таблица реализует связь многие-ко-многим между паспортами
+и материалами. Необходимость такой связки обусловлена тем, что один экспонат
+может быть изготовлен из нескольких материалов одновременно.
+Хранение списка материалов в одном поле таблицы нарушало бы
+первую нормальную форму.
+
+
+% 20. exhibit_placements
+\begin{table}[H]
+{\footnotesize
+\begin{tabularx}{\textwidth}{|c|c|L|L|L|L|L|}
+\hline
+№ & Ключ & Имя RU & Имя EN & Тип & По умолч. & Ссылка \\
+\hline
+1 & PK & id\_\allowbreak размещения\_\allowbreak экспонатов & exhibit\_\allowbreak placement\_\allowbreak id & SERIAL & NOT NULL & - \\
+\hline
+2 & FK & id\_\allowbreak экспоната & exhibit\_\allowbreak id & INT & NOT NULL & exhibits (exhibit\_\allowbreak id) \\
+\hline
+3 & FK & id\_\allowbreak выставки & exhibition\_\allowbreak id & INT & NOT NULL & exhibitions (exhibition\_\allowbreak id) \\
+\hline
+4 & FK & id\_\allowbreak места\_\allowbreak экспони-рования & display\_\allowbreak place\_\allowbreak id & INT & NOT NULL & display\_\allowbreak places (display\_\allowbreak place\_\allowbreak id) \\
+\hline
+\end{tabularx}}
+\caption{Размещение экспонатов - Exhibit Placements}
+\end{table}
+
+\noindent Таблица фиксирует тройную связь — размещение экспоната на конкретном месте в рамках определённой выставки. Благодаря
+этой таблице возможно получить полный маршрут любого экспоната
+(какие выставки, в каком зале, на какой витрине) и контролировать,
+не назначено ли одно место сразу нескольким экспонатам.
+
+
+
+\vspace{-20pt}
+{\Large \textbf{\subsection{Cхема базы данных}}} \par
+
+Схема базы данных на русском языке представлена на Рис.\ref{db_shema_rus}, а на английском языке представлена на Рис.\ref{db_shema_eng}. Над каждой таблицей указан уровень заполнения и ожидаемое число записей.
+
+
+\vspace{-10pt}
+{\Large \textbf{\subsection{Cхема заполнения уровней БД}}} \par
+
+Cхема заполнения уровней БД представлена на Рис.\ref{fill_levels}. На первом уровне все таблицы независимы и являются словарями. Исключением является таблица <<Сотрудники>>, которая независима, но не является словарем.  
+
+\storeareas\DesigningSavedValues
+
+% 2. Меняем формат на A3 и ориентацию на альбомную
+% Важно: \clearpage обязателен перед сменой формата
+\clearpage
+\KOMAoptions{
+    paper=a3, 
+    paper=landscape, 
+    DIV=15,           % Делаем поля поменьше, так как на A3 их стандартный размер огромен
+    BCOR=0mm,         % Убираем отступ под переплет для этого листа
+    pagesize          % Гарантируем, что PDF поймет смену размера
+}
+\recalctypearea
+
+\noindent
+\vspace{20pt}
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=13.5cm]{pic/Схема БД РУС 4.png}
+    \caption{Схема базы данных на русском языке}
+    \label{db_shema_rus}
+\end{figure}
+
+\newpage
+\noindent
+\vspace{20pt}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=13.5cm]{pic/Схема БД ENG 4.png}
+    \caption{Схема базы данных на английском языке}
+    \label{db_shema_eng}
+\end{figure}
+
+\newpage
+\noindent
+\vspace{20pt}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=10.5cm]{pic/Уровни заполнения.png}
+    \caption{Схема заполнения уровней БД}
+    \label{fill_levels}
+\end{figure}
+
+
+\clearpage
+\DesigningSavedValues
+\recalctypearea
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\iffalse
+Программа была реализована на языке C++ c использованием стандартных контейнеров STL, а именно map, string и vector. \par 
+Структура проекта представлена на Рис.\ref{structure}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[height=12cm]{pic/structure.jpg}
+    \caption{Структура проекта}
+    \label{structure}
+\end{figure}
+
+\begin{enumerate}
+    \item main - точка входа программы.
+    \item Exceptions.h - файл с самописными исключениями для использования их в throw - catch
+    \item Сonfig.h - файл, в котором задано правило +1.
+    \item Interface содержит функции, отвечающие за ввод значений пользователем.
+    \item Menu реализует пользовательское меню.
+    \item Arithmetic\_class - алгебраическая структура.
+    \item Small\_arithmetic.cpp - действия «малой» арифметики.
+    \item Big\_arithmetic.cpp - действия «большой» арифметики.
+\end{enumerate}
+
+
+\noindent{\Large \textbf{\subsection{Сonfig.h}}} \par
+
+В Сonfig.h при помощи std::map<char, char> hasse задано правило +1, а также строка-алфавит str\_hasse. 
+\begin{lstlisting}[caption=Сonfig.h, label=lst:Сonfig.h]
+std::map<char, char> hasse = {
+    {'a', 'b'},
+    {'b', 'd'},
+    {'c', 'a'},
+    {'d', 'f'},
+    {'e', 'c'},
+    {'f', 'i'},
+    {'g', 'j'},
+    {'h', 'e'},
+    {'i', 'k'},
+    {'j', 'h'},
+    {'k', 'g'}
+};
+
+std::string str_hasse = "abcdefghijk";
+\end{lstlisting}
+
+\noindent{\Large \textbf{\subsection{Arithmetic\_class.h}}} \par
+
+В Arithmetic\_class.h объявлены методы-действия малой и большой конечной арифметики, а также таблица сложения (с переносами) и умножения (с переносами), которые вычисляются при создании класса Arithmetic, однако далее используются лишь для вывода пользователю, сами вычисления выражений происходят при помощи методов. Также присутствует правило +1 std::map<char, char> hasse, аддитивная единица std::string str\_0 и мультипликативная единица std::string str\_1.
+
+\begin{lstlisting}[caption=Arithmetic\_class.h, label=lst:Arithmetic-class.h]
+class  Arithmetic {
+public:
+    //правило +1
+    std::map<char, char> hasse;
+    std::string str_hasse;
+    //аддитивная единица
+    std::string str_0;
+    //мультипликативная
+    std::string str_1;
+
+    //таблица сложения
+    std::vector<std::vector<char>> sum_table;
+    //таблица умножения
+    std::vector<std::vector<char>> mult_table;
+
+    //таблица переносов при сложении
+    std::vector<std::vector<char>> next_sum_table;
+    //таблица переносов при умножении
+    std::vector<std::vector<char>> next_mult_table;
+
+    Arithmetic(std::map<char, char> input_hasse, std::string input_str_hasse);
+    //выделение памяти под таблицы
+    void memory_allocation();
+    //выводит информацию о калькуляторе
+    void print_info();
+    //выводит правило +1
+    void print_hasse();
+    //печать одной любой таблицы
+    void print_one_table(std::string title, std::vector<std::vector<char>>& table);
+    //печать всех составленных таблиц
+    void print_tables();
+    //Вывод диапазона чисел
+    void print_range();
+
+
+    //ввод выражений
+    void input_action();
+    //обработка введенной суммы
+    void call_and_out_sum(
+        std::string left, std::string right, 
+        std::string left_without_minus, std::string right_without_minus,
+        int minus_count
+    );
+    //обработка введенной разности
+    void call_and_out_diff(
+        std::string left, std::string right, 
+        std::string left_without_minus, std::string right_without_minus,
+        int minus_count
+    );
+    //обработка введенного умножения
+    void call_and_out_mult(
+        std::string left_without_minus, std::string right_without_minus,
+        int minus_count
+    );
+    //обработка введенного частного
+    void call_and_out_div(
+        std::string left, std::string right, 
+        std::string left_without_minus, std::string right_without_minus,
+        int minus_count
+    );
+
+
+    //сложение в малой арифметике, возвращает число и перенос в next разряд 
+    std::vector<char> small_sum(char left, char right);
+    //умножение в малой арфифметике, возвращает число и перенос в next разряд 
+    std::vector<char> small_mult(char left, char right);
+    //вычитанние в малой арифметике, возвращает число и заем из next разряда 
+    std::vector<char> small_diff(char left, char right);
+    //деление в малой арифметике, возвращает число и остаток 
+    std::vector<char> small_div(char left, char right);
+
+
+    //сравнение двух чисел, возвращает 1 если left больше, -1 если right больше, 0 если равны
+    int compare(std::string left, std::string right);
+    //проверяет левое и правое число на 0
+    std::vector<bool> find_null(std::string left, std::string right);
+    //сложение в большой арифметике
+    std::string big_sum(std::string left, std::string right);
+    //вычитанние в большой арифметике
+    std::string big_diff(std::string left, std::string right);
+    //умножение в большой арфифметике
+    std::string big_mult(std::string left, std::string right);
+    //деление в большой арифметике, возвращает частное и остаток
+    std::vector<std::string> big_div(std::string left, std::string right);
+};
+\end{lstlisting}
+
+\noindent{\Large \textbf{\subsection{Small\_arithmetic.cpp}}} \par
+
+В Small\_arithmetic.cpp реализованы методы вычислений действий «малой» конечной арифметики.
+\vspace{8pt}
+
+\textbf{Функция small\_sum } \par
+\textbf{Вход:} char left, char right - слагаемые \par
+\textbf{Выход:} std::vector<char> result = \{sum, next\} - вектор, содержащий результат суммы и перенос в следующий разряд \par
+\textbf{Описание:} Изначально результат суммы равен левому слагаемому, а перенос нулю. Далее к результату суммы и изначально нулевому current\_el начинают одновременно прибвлять единицу в соответствии с правилом +1, пока current\_el не станет равен правому слагаемому. Если во время этого сумма становится равна нулю, то это означает обнуление разряда, значение переноса при этом увеличивается на единицу.\par
+\vspace{10pt}
+
+\textbf{Функция small\_mult } \par
+\textbf{Вход:} char left, char right - множители \par
+\textbf{Выход:} std::vector<char> result = \{mult, next\} - вектор, содержащий результат произведения и перенос в следующий разряд \par
+\textbf{Описание:} Изначально результат произведения равен левому слагаемому, а перенос нулю. Далее происходит проверка умножения на ноль, при котором и произведение, и перенос равны нулю. Умножение left*right можно представить как сложение left с самим собой right-1 раз, поэтому к mult прибавляется right, пока current\_el не станет равен right-1, при этом перенос умножения равен сумме всех переносов этих сложений.\par
+\vspace{10pt}
+
+\begin{lstlisting}[caption=small\_sum и small\_mult, label=lst:small-sum и small-mult]
+//сложение в малой арифметике, возвращает число и перенос в next разряд 
+std::vector<char> Arithmetic::small_sum(char left, char right){
+    //левое слагаемое будем двигать, пока не достигнем суммы
+    char sum = left;
+    //по умолчанию перенос равен нулю
+    char next = str_hasse[0];
+
+    //будем делать +1 у левого, пока current_el = 0 не сравняется с right
+    char current_el = str_hasse[0];
+    while(current_el != right){
+        current_el = hasse[current_el];
+
+        sum = hasse[sum];
+        // <=> обнулению круга
+        if(sum == str_hasse[0]) next = hasse[next];
+    }
+
+    std::vector<char> result = {sum, next};
+    return result;
+}
+
+//умножение в малой арфифметике, возвращает число и перенос в next разряд 
+std::vector<char> Arithmetic::small_mult(char left, char right){
+    //левое слагаемое будем двигать, пока не достигнем произведения
+    char mult = left;
+    //по умолчанию перенос равен нулю
+    char next = str_hasse[0];
+
+    //умножение на ноль
+    if(left == str_hasse[0] || right == str_hasse[0]){
+        std::vector<char> result = {str_hasse[0], str_hasse[0]};
+        return result;
+    }
+
+    //умножение - это прибовление к left числа left right-1 раз
+    char current_el = str_hasse[0];
+    while(hasse[current_el] != right){ // <=> right-1 раз
+        current_el = hasse[current_el];
+
+        std::vector<char> sum_i = small_sum(mult, left);
+        mult = sum_i[0];
+        //к переносу умножения пребавляем перенос i-ой суммы
+        next = small_sum(next, sum_i[1])[0];
+    }
+
+    std::vector<char> result = {mult, next};
+    return result;
+}
+\end{lstlisting}
+
+\textbf{Функция small\_diff } \par
+\textbf{Вход:} char left - уменьшаемое, char right - вычитаемое \par
+\textbf{Выход:} std::vector<char> result = \{diff, next\} - вектор, содержащий результат разности и заем из следующего разряда \par
+\textbf{Описание:} Разность вычисляется как действие, обратное сложению. Изначально разность равна нулю. Далее ее увеличивают, пока сумма diff+rigth не становится равной left. При этом значения заема разности совпадает с переносом этой суммы.\par
+\vspace{10pt}
+
+\textbf{Функция small\_div } \par
+\textbf{Вход:} char left - делимое, char right - делитель \par
+\textbf{Выход:} std::vector<char> result = \{div, remain\} - вектор, содержащий результат деления и остаток \par
+\textbf{Описание:} Деление вычисляется как действие, обратное умножению. Изначально частное и остаток равны нулю. Далее остаток remain увеличивают, пока он не станет равным делителю right, после чего он сбрасывается до нуля, а частное увеличивается на единицу. Это продолжается пока div * right + remain не сравняется с делимым left.\par
+\vspace{10pt}
+
+\begin{lstlisting}[caption=small\_diff и small\_div, label=lst:small-diff и small-div]
+//вычитанние в малой арифметике, возвращает число и заем из next разряда 
+std::vector<char> Arithmetic::small_diff(char left, char right){
+    //a - b = c <=> с + b = a
+    //будем двигать разность, пока не найдем вычитаемое
+    char diff = str_hasse[0];
+    std::vector<char> result;
+
+    std::vector<char> sum_i;
+    do{
+        sum_i = small_sum(diff, right);
+        //заем совпадает с переносом при сумме
+        result = {diff, sum_i[1]};
+        diff = hasse[diff]; 
+    } while(sum_i[0] != left);
+
+    return result;
+}
+
+//деление в малой арифметике, возвращает число и остаток 
+std::vector<char> Arithmetic::small_div(char left, char right){
+    //(a - ост) / b = c <=> a = b*c + ост,  ост < b
+    //будем двигать частное и остаток для каждого частного, пока не найдем делимое
+    char div = str_hasse[0];
+    char remain = str_hasse[0]; //остаток
+    std::vector<char> result;
+
+    std::vector<char> sum_i;
+    std::vector<char> mult_i;
+    do{
+        mult_i = small_mult(right, div);
+        sum_i = small_sum(mult_i[0], remain);
+
+        result = {div, remain};
+
+        remain = hasse[remain];
+        //если остаток сравнялся с делителем
+        if(remain == right){
+            //сбрасываем остаток и двигаем частное
+            remain = str_hasse[0];
+            div = hasse[div];
+        }
+    } while(sum_i[0] != left);
+
+    return result;
+}
+\end{lstlisting}
+
+\newpage
+
+\noindent{\Large \textbf{\subsection{Big\_arithmetic.cpp}}} \par
+В Big\_arithmetic.cpp реализованы методы вычислений действий «большой» конечной арифметики. \par
+Для начала рассмотрим два вспомогательных метода. 
+\vspace{8pt}
+
+\textbf{Функция compare } \par
+\textbf{Вход:} std::string left, std::string right - числа, которые требуется сравнить\par
+\textbf{Выход:} int result, причем он равен -1 при left < right, равен 1 при left > right и равен 0 при left = right\par
+\textbf{Описание:} В начале у чисел убираются незначащие нули. После этого уже можно считать, что число с большим числом разрядов больше другого. Если же числа равны по числу разрядов, то происходит поразрядное сравнение, начиная со старшего разряда, при котором изначально нулевые счетчики увеличиваются на единицу, пока не достигнут значения соответствующего разряда у левого или правого числа. При этом, если один из счетчиков не успел увеличится до соотв. разряда, а другой успел, то это значит, что число, в котором счетчик успел совпасть, меньше другого. Если же все разряды чисел совпали, то числа считаются равными, возвращается result = 0. \par
+\vspace{10pt}
+
+\textbf{Функция find\_null } \par
+\textbf{Вход:} std::string left, std::string right - числа, которые требуется проверить на равенство нулю \par
+\textbf{Выход:} std::vector<bool> result = \{left\_is\_zero, right\_is\_zero\} - вектор с результатами проверки равенства нулю для левого и правого числа\par
+\textbf{Описание:} Происходит поразрядный перебор каждого числа. Если находится хотя бы один ненулевой разряд в числе, то результатом проверки возвращается false для этого числа. \par
+\vspace{10pt}
+
+\begin{lstlisting}[caption=compare и find\_null, label=lst:compare и find-null]
+//сравнение двух чисел, возвращает 1 если left больше, -1 если right больше, 0 если равны
+int Arithmetic::compare(std::string left, std::string right){
+    //убираем незначащие нули
+    while(left.size() > 1 && left[0] == str_hasse[0]) left = left.substr(1);
+    while(right.size() > 1 && right[0] == str_hasse[0]) right = right.substr(1);
+
+    //если длины разные, то больше то число, у которого длина больше
+    if(left.size() > right.size()) return 1;
+    if(left.size() < right.size()) return -1;
+
+    //если длины равны, сравниваем поразрядно
+    for(int i = 0; i < left.size(); i++){
+        //сдвигаем от нуля до left[i] и right[i]
+        char current_left_i = str_hasse[0];
+        char current_right_i = str_hasse[0];
+        while(current_left_i != left[i] && current_right_i != right[i]){
+            current_left_i = hasse[current_left_i];
+            current_right_i = hasse[current_right_i];
+        }
+        //кто успел до себя допрыгать, тот и меньше
+        if(current_left_i == left[i] &&  current_right_i != right[i]) return -1;
+        if(current_left_i != left[i] &&  current_right_i == right[i]) return 1;
+    }
+
+    //числа равны
+    return 0;
+}
+
+//проверяет левое и правое число на 0
+std::vector<bool> Arithmetic::find_null(std::string left, std::string right){
+    bool left_is_zero = true;
+    for(int i = 0; i < left.size(); i++){
+        if(left[i] != str_hasse[0]){
+            left_is_zero = false;
+            break;
+        }
+    }
+
+    bool right_is_zero = true;
+    for(int i = 0; i < right.size(); i++){
+        if(right[i] != str_hasse[0]){
+            right_is_zero = false;
+            break;
+        }
+    }
+
+    std::vector<bool> result = {left_is_zero, right_is_zero};
+    return result;
+}
+\end{lstlisting}
+
+\textbf{Функция big\_sum } \par
+\textbf{Вход:} std::string left, std::string right - слагаемые\par
+\textbf{Выход:} std::string sum - результат суммы чисел\par
+\textbf{Описание:} В начале у чисел убираются незначащие нули. После этого числа переворачиваются для суммирования, начиная с младших разрядов. Суммирование продолжается, пока не достигается старший разряд хотя бы одного из чисел или если есть перенос из текущего разряда. Если же порядок старшего разряда числа меньше, чем у текущего суммируемого разряда, то ему приписывается значение нуля. Суммирование разрядов и вычисление переноса осуществляется при помощи описанного выше метода small\_sum, значение суммы для разряда добавляется к результату sum. Так как суммирование происходит, начиная с младших разрядов, то результат необходимо перевернуть. Если после суммирования получилось число, у которого больше 8 разрядов, то вызывается исключение с сообщением о переполнении.\par
+\vspace{10pt}
+
+\textbf{Функция big\_mult } \par
+\textbf{Вход:} std::string left, std::string right - множители \par
+\textbf{Выход:} std::string mult - результат произведения чисел\par
+\textbf{Описание:} В начале у чисел убираются незначащие нули. После этого происходит проверка чисел на равенство нулю при помощи описанного выше метода find\_null. Если хотя бы одно из них является нулем, то и произведение равно нулю. Если же оба числа ненулевые, то они переворачиваются для умножения, начиная с младших разрядов. При вычислениях столбиком, число left поочередно умножается на каждый разряд числа right (умножаются разряды left, при этом учитываются переносы), при помощи описанного выше метода small\_mult. Каждое такое произведение переворачивается и происходит сдвиг на порядок соответствующего рязряда right. Такой результат произведения для каждого разряда right прибавляется к итоговому mult при помощи big\_sum. Если результатом произведения получилось число, у которого больше 8 разрядов, то вызывается исключение с сообщением о переполнении. \par
+\vspace{10pt}
+
+\begin{lstlisting}[caption=big\_sum и big\_mult, label=lst:big-sum и big-mult]
+//сложение в большой арифметике
+std::string Arithmetic::big_sum(std::string left, std::string right){
+    std::string sum = "";
+    //нужно убрать незначащие нули, потому что иначе программа падает
+    while(left.size() > 1 && left[0] == str_hasse[0]) left = left.substr(1);
+    while(right.size() > 1 && right[0] == str_hasse[0]) right = right.substr(1);
+
+    int i = 0;
+    int j = 0;
+
+    //переворачиваем строки для суммирования от младших разрядов
+    std::reverse(left.begin(), left.end());
+    std::reverse(right.begin(), right.end());
+
+    char next = str_hasse[0];
+    while(i < left.size() || j < right.size() || next != str_hasse[0]){
+        char left_i = (i < left.size()) ? left[i] : str_hasse[0];
+        char right_j = (j < right.size()) ? right[j] : str_hasse[0];
+
+        //вначале к первому числу прибавим перенос от предыдущей суммы
+        std::vector<char> add_next = small_sum(left_i, next);
+        left_i = add_next[0];
+        next = add_next[1];
+
+        std::vector<char> sum_i = small_sum(left_i, right_j);
+        sum += sum_i[0];
+        next = small_sum(sum_i[1], next)[0];
+        i++;
+        j++;
+    }
+    
+    //убираем незначащие нули
+    std::reverse(sum.begin(), sum.end());
+    while(sum.size() > 1 && sum[0] == str_hasse[0]) sum = sum.substr(1);
+    if(sum.size() > 8) throw Input_error("При вычислениях произошло переполнение разрядов!");
+    return sum;
+}
+
+//умножение в большой арфифметике
+std::string Arithmetic::big_mult(std::string left, std::string right){
+    std::string mult = "";
+    mult += str_hasse[0];
+
+    //нужно убрать незначащие нули, потому что иначе программа падает
+    while(left.size() > 1 && left[0] == str_hasse[0]) left = left.substr(1);
+    while(right.size() > 1 && right[0] == str_hasse[0]) right = right.substr(1);
+
+    //умножение на 0
+    std::vector<bool> nulls = find_null(left, right);
+    if(nulls[0] || nulls[1]) return mult;
+
+    //переворачиваем строки для умножения от младших разрядов
+    std::reverse(left.begin(), left.end());
+    std::reverse(right.begin(), right.end());
+
+    //умножение столбиком
+    int j = 0;
+    while(j < right.size()){
+        //берем разряд второго множителя
+        char right_j = right[j];
+        
+        //произведение для текущего разряда
+        std::string tmp_mult = "";
+        char next = str_hasse[0];
+        
+        int i = 0;
+        while(i < left.size() || next != str_hasse[0]){
+            char left_i = (i < left.size()) ? left[i] : str_hasse[0];
+
+            //умножаем текущий разряд left на текущий разряд right
+            std::vector<char> mult_i = small_mult(left_i, right_j);
+            
+            //добавляем перенос от предыдущего умножения
+            std::vector<char> add_next = small_sum(mult_i[0], next);
+            tmp_mult += add_next[0];
+            next = small_sum(mult_i[1], add_next[1])[0];
+            
+            i++;
+        }
+
+        //переворачиваем tmp_mult обратно и добавляем сдвиг нулями справа
+        std::reverse(tmp_mult.begin(), tmp_mult.end());
+        for(int k = 0; k < j; k++){
+            tmp_mult += str_hasse[0];
+        }
+
+        //добавляем к общему результату
+        mult = big_sum(mult, tmp_mult);
+        
+        j++;
+    }
+
+    //убираем незначащие нули, если есть
+    while(mult.size() > 1 && mult[0] == str_hasse[0]) mult = mult.substr(1);
+
+    if(mult.size() > 8) throw Input_error("При вычислениях произошло переполнение разрядов!");
+
+    return mult;
+}
+\end{lstlisting}
+
+\textbf{Функция big\_diff } \par
+\textbf{Вход:} std::string left - уменьшаемое, std::string right - вычитаемое\par
+\textbf{Выход:} std::string diff - результат разности чисел\par
+\textbf{Описание:} В начале у чисел убираются незначащие нули. После этого числа переворачиваются для вычитания, начиная с младших разрядов. Вычитание продолжается, пока не достигается старший разряд хотя бы одного из чисел. Если же порядок старшего разряда числа меньше, чем у текущего суммируемого разряда, то ему приписывается значение нуля. Вычитание разрядов и вычисление заема осуществляется при помощи описанного выше метода small\_diff, значение разности для разряда добавляется к результату diff. Так как вычитание происходит, начиная с младших разрядов, то результат необходимо перевернуть. Если после вычитания получилось число, у которого больше 8 разрядов, то вызывается исключение с сообщением о переполнении.\par
+\vspace{10pt}
+
+\textbf{Функция big\_div } \par
+\textbf{Вход:} std::string left - делимое, std::string right - делитель \par
+\textbf{Выход:} std::vector<std::string> result = \{div, remain\} - вектор, содержащий значение частного и остатка\par
+\textbf{Описание:} В начале происходит проверка чисел на равенство нулю при помощи метода find\_null. Если оба числа равны нулю, то выводится весь диапазон чисел (для варианта D2 это $[-cccccccc, +cccccccc]$). Если только делитель равен нулю, то выводится пустое множество «Ø». Если только делимое равно нулю, то частное и остаток равны нулю. Далее у чисел убираются незначащие нули. Деление реализовано подбором значений частного div и остатка remain. Происходит увеличение остатка на единицу, пока он не сравняется с делителем. Когда остаток становится равен делителю, то его значение сбрасывается до нуля, а частное увеличивается на единицу. Это продолжается, пока $right * div + remain \not= left$.\par
+\vspace{10pt}
+
+\begin{lstlisting}[caption=big\_diff и big\_div, label=lst:big-diff и big-div]
+//вычитанние в большой арифметике
+std::string Arithmetic::big_diff(std::string left, std::string right){
+    //нужно убрать незначащие нули, потому что иначе программа падает
+    while(left.size() > 1 && left[0] == str_hasse[0]) left = left.substr(1);
+    while(right.size() > 1 && right[0] == str_hasse[0]) right = right.substr(1);
+
+    //переворачиваем строки для вычитания от младших разрядов
+    std::reverse(left.begin(), left.end());
+    std::reverse(right.begin(), right.end());
+
+    std::string diff = "";
+    int i = 0;
+    int j = 0;
+
+    char next = str_hasse[0];
+    while(i < left.size() || j < right.size()){
+        char left_i = (i < left.size()) ? left[i] : str_hasse[0];
+        char right_j = (j < right.size()) ? right[j] : str_hasse[0];
+
+        //вначале из первого числа вычтем заем от предыдущей разности
+        std::vector<char> diff_next = small_diff(left_i, next);
+        left_i = diff_next[0];
+        next = diff_next[1];
+
+        std::vector<char> diff_i = small_diff(left_i, right_j);
+        diff += diff_i[0];
+        next = small_sum(diff_i[1], next)[0];
+        i++;
+        j++;
+    }
+
+    //убираем незначащие нули
+    std::reverse(diff.begin(), diff.end());
+    while(diff.size() > 1 && diff[0] == str_hasse[0]) diff = diff.substr(1);
+
+    if(diff.size() > 8) throw Input_error("При вычислениях произошло переполнение разрядов!");
+
+    return diff;
+}
+
+//деление в большой арифметике, возвращает частное и остаток
+std::vector<std::string> Arithmetic::big_div(std::string left, std::string right){
+    //проверка a/0 и 0/0
+    std::vector<bool> nulls = find_null(left, right);
+
+    if(nulls[0] && nulls[1]){
+        print_range();
+        throw Input_error("");
+    }
+    if(nulls[1]){
+        std::cout << "Результат: Ø\n";
+        throw Input_error("");
+    }
+    if(nulls[0]){
+        std::vector<std::string> result = {str_0, str_0};
+        return result;
+    }
+
+    //нужно убрать незначащие нули, потому что иначе программа падает
+    while(left.size() > 1 && left[0] == str_hasse[0]) left = left.substr(1);
+    while(right.size() > 1 && right[0] == str_hasse[0]) right = right.substr(1);
+    
+    std::string div = str_0;
+    std::string remain = str_0;
+
+    std::string sum_i;
+    std::string mult_i;
+
+    //a = bc + ост, ост < b
+    //будем двигать частное и остаток для каждого частного, пока не найдем делимое
+    do{
+        mult_i = big_mult(right, div);
+        sum_i = big_sum(mult_i, remain);
+
+        if(compare(sum_i, left) == 0) break;
+
+        //увеличиваем остаток на 1
+        remain = big_sum(remain, str_1);
+
+        if(compare(remain, right) == 0){
+            //сбрасываем остаток и двигаем частное
+            remain = str_0;
+            div = big_sum(div, str_1);
+        }
+    } while(true);
+
+    //убираем незначащие нули из частного
+    while(div.size() > 1 && div[0] == str_hasse[0]) div = div.substr(1);
+    //убираем незначащие нули из остатка
+    while(remain.size() > 1 && remain[0] == str_hasse[0]) remain = remain.substr(1);
+
+    std::vector<std::string> result = {div, remain};
+    return result;
+}
+\end{lstlisting}
+
+
+
+\noindent{\Large \textbf{\subsection{Обработка ввода чисел}}} \par
+Описанные выше функции для действий «большой» конечной арифметики работают лишь для двух неотрицательных чисел, поэтому необходимо дополнительно обрабатывать вводимые пользователем числа для работы с отрицательными числами. \par
+\vspace{10pt}
+
+\textbf{Функция call\_and\_out\_sum } \par
+\textbf{Вход:} std::string left, std::string right - числа, введенные пользователем; std::string left\_without\_minus, std::string right\_without\_minus - эти же числа, но гарантированно неотрицательные; int minus\_count - количество введенных отрицательных чисел (0 если оба неотрицательны, 1 если одно отрицательно, 2 если оба отрицательны)\par
+\textbf{Выход:} результат суммирования с учетом знаков\par
+\textbf{Описание:} Если оба введенных числа неотрицательные, то вызывается суммирование двух неотрицательных чисел big\_sum. Если же оба числа являются отрицательными, то снова вызывается big\_sum, но уже гарантированно для чисел без минусов, а к значению результата приписывается минус (если это не нуль). Суммирование двух чисел, одно из которых отрицательно, можно вычислить как разность двух неотрицательных чисел, поэтому после определения отрицательного числа (его исходная длина не совпадает с длиной без знака «-»), вызывается обработка разности, где на место вычитаемого ставится изначально отрицательное число без минуса.\par
+\vspace{10pt}
+
+\textbf{Функция call\_and\_out\_diff } \par
+\textbf{Вход:} std::string left, std::string right - числа, введенные пользователем; std::string left\_without\_minus, std::string right\_without\_minus - эти же числа, но гарантированно неотрицательные; int minus\_count - количество введенных отрицательных чисел \par
+\textbf{Выход:} результат вычитания с учетом знаков\par
+\textbf{Описание:} Если оба введенных числа неотрицательные, то происходит поиск большего из них при помощи compare, потому что значение, вычисленное big\_diff может быть только положительным. Если left < right, то вычисляется big\_diff, в котором left и right поменяны местами, а к результату приписывается минус. Если же left $\geq$ right, то аргументами big\_diff являются числа в том же порядке. Случай, когда оба введенных числа оказываются отрицательными, можно рассматривать как -left - -right = right - left (разность двух неотрицательных чисел). Случай, когда только правое число отрицательно, можно рассматривать как сложение двух неотрицательных чисел. Случай, когда только левое число отрицательное можно рассматривать как \\ -left - right = -(left+right).\par
+\vspace{10pt}
+
+\begin{lstlisting}[caption=call\_and\_out\_sum и call\_and\_out\_diff, label=lst:call-and-out-sum и call-and-out-diff]
+//обработка введенной суммы
+void Arithmetic::call_and_out_sum(
+    std::string left, std::string right, 
+    std::string left_without_minus, std::string right_without_minus,
+    int minus_count
+){
+    bool is_sum = true;
+    std::string result;
+    switch (minus_count){
+        case 0:
+            result = big_sum(left, right);
+            break;
+        case 2:
+            result = big_sum(left_without_minus, right_without_minus);
+            if(result != str_0) result = "-" + result;
+            break;
+        case 1:
+            //<=> правое число отрицательное
+            if(right.size() != right_without_minus.size()){
+                call_and_out_diff(left_without_minus, right_without_minus, left_without_minus, right_without_minus, 0);
+            }
+            else{ 
+                call_and_out_diff(right_without_minus, left_without_minus, right_without_minus, left_without_minus, 0);
+            }
+            is_sum = false; //чтобы дважды результат не выводило
+            break;
+        default:
+            break;
+    }
+
+    if(is_sum) std::cout << "Результат: " << result << "\n\n";
+}
+
+//обработка введенной разности
+void Arithmetic::call_and_out_diff(
+    std::string left, std::string right, 
+    std::string left_without_minus, std::string right_without_minus,
+    int minus_count
+){
+    std::string result;
+    switch (minus_count){
+        case 0:
+            if(compare(left, right) == -1){ //если правое больше
+                result = big_diff(right, left);
+                if(result != str_0) result = "-" + result;
+            } else{
+                result = big_diff(left, right);
+            }
+            break;
+        case 2: // -a - -b = b - a
+            if(compare(right_without_minus, left_without_minus) == -1){ //если a > b
+                result = big_diff(left_without_minus, right_without_minus);
+                if(result != str_0) result = "-" + result;
+            } else{
+                result = big_diff(right_without_minus, left_without_minus);
+            }
+            break;
+        case 1:
+            //<=> правое число отрицательное
+            if(right.size() != right_without_minus.size()) result = big_sum(left, right_without_minus);
+            else{ 
+                result = big_sum(left_without_minus, right);
+                if(result != str_0) result = "-" + result;
+            }
+            break;
+        default:
+            break;
+    }
+
+    std::cout << "Результат: " << result << "\n\n";
+}
+\end{lstlisting}
+
+\textbf{Функция call\_and\_out\_mult } \par
+\textbf{Вход:} std::string left, std::string right - числа, введенные пользователем; std::string left\_without\_minus, std::string right\_without\_minus - эти же числа, но гарантированно неотрицательные; int minus\_count - количество введенных отрицательных чисел\par
+\textbf{Выход:} результат умножения с учетом знаков\par
+\textbf{Описание:} При умножении можно считать значение произведения big\_mult для двух гарантированно неотрицательных чисел, а после приписывать к нему «-» (если это не нуль), если только одно из введенных чисел отрицательно.\par
+\vspace{10pt}
+
+\textbf{Функция call\_and\_out\_div } \par
+\textbf{Вход:} std::string left, std::string right - числа, введенные пользователем; std::string left\_without\_minus, std::string right\_without\_minus - эти же числа, но гарантированно неотрицательные; int minus\_count - количество введенных отрицательных чисел \par
+\textbf{Выход:} результат деления и остаток с учетом знаков\par
+\textbf{Описание:} В начале вычисляется частное и остаток при помощи big\_div для двух гарантированно неотрицательных чисел (это и является результатом вычислений, если пользователь не ввел отрицательных чисел, или если оба числа оказались отрицательными). Если только делитель отрицательный, то достаточно просто приписать «-» частному, а остаток трогать не нужно. Если же только делимое отрицательно, то частное необходимо увеличить на единицу (т.к. далее к нему припишется «-», то это эквивалентно уменьшению на один), а далее подобрать новый остаток для которого выполнится $left = (div-1) * right + new\_remain$.\par
+\vspace{10pt}
+
+\begin{lstlisting}[caption=call\_and\_out\_mult и call\_and\_out\_div, label=lst:call-and-out-mult и call-and-out-div]
+//обработка введенного умножения
+void Arithmetic::call_and_out_mult(
+    std::string left_without_minus, std::string right_without_minus,
+    int minus_count
+){
+    std::string result;
+    result = big_mult(left_without_minus, right_without_minus);
+    if(minus_count == 1 && result != str_0) result = "-" + result;
+
+    std::cout << "Результат: " << result << "\n\n";
+}
+
+//обработка введенного частного
+void Arithmetic::call_and_out_div(
+    std::string left, std::string right, 
+    std::string left_without_minus, std::string right_without_minus,
+    int minus_count
+){
+    std::vector<std::string> result = big_div(left_without_minus, right_without_minus);
+
+    if(minus_count == 1){
+        //<=> отрицательное левое нужно по особому отработать (если остаток не 0); если только правое, то просто "-" допишем к частному
+        if(left.size() != left_without_minus.size() && result[0] != str_0){
+            //если остаток не ноль
+            if(result[1] != str_0){
+                //уменьшим частное на 1 (по модулю)
+                result[0] = big_sum(result[0], str_1);
+                //подбираем остаток для нового частного
+                result[1] = str_0;
+                //a != (div-1) * b + new_remain
+                std::string new_left = big_mult(result[0], right_without_minus);
+                while( compare(left_without_minus, big_diff(new_left, result[1]) ) != 0 ){
+                    result[1] = big_sum(result[1], str_1);
+                }
+            }
+        }
+
+        //ну мало ли
+        if((result[0]).size() > 8) throw Input_error("При вычислениях произошло переполнение разрядов!");
+        //дописываем минус частному
+        if(result[0] != str_0) result[0] = "-" + result[0];
+    }
+
+    std::cout << "Частное: " << result[0] << "\n";
+    std::cout << "Остаток: " << result[1] << "\n\n";
+}
+\end{lstlisting}
+\fi
+\newpage

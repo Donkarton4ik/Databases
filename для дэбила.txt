@@ -1,0 +1,10 @@
+docker-compose up -d db
+
+//подключение к консоли postgres
+docker exec -it museum_db psql -U postgres -d museum_db
+
+//запросы
+docker attach museum_backend
+
+//внутри консоли postgre запросы можно запускать через это, потому что папка запросов прикручена к докеру
+\i /queries/q1.sql

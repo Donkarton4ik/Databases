@@ -1,0 +1,30 @@
+from connection import get_conn
+
+def drop_tables():
+    conn = get_conn()
+    cur = conn.cursor()
+ 
+    cur.execute("DROP TABLE IF EXISTS exhibit_placements CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibit_materials CASCADE")
+    cur.execute("DROP TABLE IF EXISTS display_places CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibition_curators CASCADE")
+    cur.execute("DROP TABLE IF EXISTS passports CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibition_spaces CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibitions CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibits CASCADE")
+    cur.execute("DROP TABLE IF EXISTS employees CASCADE")
+    cur.execute("DROP TABLE IF EXISTS room_type CASCADE")
+    cur.execute("DROP TABLE IF EXISTS lighting_categories CASCADE")
+    cur.execute("DROP TABLE IF EXISTS humidity_categories CASCADE")
+    cur.execute("DROP TABLE IF EXISTS temp_categories CASCADE")
+    cur.execute("DROP TABLE IF EXISTS epochs CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibit_conditions CASCADE")
+    cur.execute("DROP TABLE IF EXISTS materials CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibit_status CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibition_subject CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibition_type CASCADE")
+    cur.execute("DROP TABLE IF EXISTS exhibition_status CASCADE")
+ 
+    conn.commit()
+    cur.close()
+    conn.close()

@@ -1,0 +1,77 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[main=russian,english]{babel}
+\usepackage{geometry}
+\usepackage{tabularx}
+\usepackage[fontsize=12pt]{scrextend}
+\geometry{a4paper, top=2cm}
+\usepackage[colorlinks,linkcolor=black, urlcolor=cyan, citecolor=blue]{hyperref} %гиперссылки
+\usepackage{graphicx}
+\usepackage{xcolor}
+\DeclareGraphicsExtensions{.jpg, .png}
+\usepackage{float} %для H в figure
+\usepackage{enumitem} %настрока перечислений
+
+\usepackage[bottom]{footmisc} % фиксируем сноски внизу страницы
+
+\usepackage{listings}
+
+\usepackage[pagesize]{typearea} 
+
+\usepackage{stringenc}
+\usepackage{amsmath} 
+
+\usepackage{caption}
+\captionsetup[lstlisting]{justification=centering}
+
+\lstset{
+    language=C++,
+    basicstyle=\ttfamily\normalsize,
+    frame=single,
+    numbers=left,
+    captionpos=b,
+    breaklines=true,
+    extendedchars=false,
+    keywordstyle=\color{black},
+    commentstyle=\color{black},
+    stringstyle=\color{black},
+    keepspaces=true,           
+    columns=flexible
+}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+
+\begin{document}
+
+%ТИтульник
+\input{src/Title}
+
+%Содержание
+\tableofcontents
+\newpage
+
+%Введение
+\input{src/Introduction}
+
+%Постановка задачи
+%\input{src/Tasks}
+
+%Аналитика
+%\input{src/Analysis}
+
+%Проектирование
+%\input{src/Designing}
+
+%Программирование
+\input{src/Programming}
+
+%Заключение
+\input{src/Conclusion}
+
+%Список литературы
+\input{src/Literature}
+
+%Приложение
+\input{src/Attachment}
+
+\end{document}

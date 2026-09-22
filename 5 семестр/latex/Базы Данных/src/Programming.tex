@@ -128,3 +128,154 @@ T
 План аналогичен предыдущему: представление снова разворачивается в тот же набор соединений, сортировку и группировку с фильтром по числу выставок (\texttt{>= 2}). Сверху добавляется Hash Inner Join с таблицей \texttt{passports} — поскольку сторона представления после фильтрации заметно меньше (около 170 сотрудников против 300 тысяч паспортов), хэш-таблица строится именно по ней, а строки \texttt{passports} последовательно сканируются и зондируют эту таблицу. \par
 
 \newpage
+\noindent
+{\Large \textbf{\section{Лабораторная работа №2 <<Триггеры>>}}} \par
+\noindent
+
+\newcommand{\TableName}{\texttt{employee\_\allowbreak curation\_\allowbreak stats\_\allowbreak table}}
+\newcommand{\ViewName}{\texttt{employee\_\allowbreak curation\_\allowbreak stats}}
+\newcommand{\CuratorsTable}{\texttt{exhibition\_\allowbreak curators}}
+
+\subsection{Задача}
+
+Реализовать таблицу, содержание которой повторяет представление \\ \ViewName{}. Обеспечить её актуальность с помощью триггеров: при изменении данных в таблицах \texttt{employees}, \texttt{exhibitions}, \CuratorsTable{} содержимое созданной таблицы должно пересчитываться автоматически. \par
+
+\vspace{8pt}
+
+Должно быть реализовано 6 триггеров, покрывающих следующие изменения:
+\vspace{-6pt}
+\begin{enumerate}[noitemsep]
+    \item добавление факта кураторства выставки;
+    \item удаление факта кураторства выставки;
+    \item изменение типа выставки;
+    \item изменение данных сотрудника (имя, фамилия);
+    \item удаление выставки;
+    \item удаление сотрудника.
+\end{enumerate}
+
+\subsection{Таблица}
+
+Таблица \TableName{} создана на основе представления \\ \ViewName{} и содержит те же поля: идентификатор и имя сотрудника, число курируемых им выставок и число уникальных типов среди них. Текст создания таблицы представлен в Листинге~\ref{lst:trigger-table}.
+
+\lstinputlisting[language=SQL, caption={Таблица employee\_curation\_stats\_table}, label={lst:trigger-table}, basicstyle=\ttfamily\footnotesize]{queries_triggers/table_like_view.sql}
+
+\vspace{-10pt}
+\subsection{Триггер: добавление факта кураторства выставки}
+
+Срабатывает на \texttt{AFTER INSERT} по таблице \CuratorsTable{}: сотруднику назначена ещё одна выставка для кураторства, его строка в \TableName{} пересчитывается заново. Текст триггера представлен в Листинге~\ref{lst:trg-curator-added}.
+
+\lstinputlisting[language=SQL, caption={Триггер добавления факта кураторства}, label={lst:trg-curator-added}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_curator_added.sql}
+
+Проверка триггера (состояние \TableName{} до и после) представлена на Рис.\ref{fig:trg-curator-added}. \par
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=8cm,keepaspectratio]{pic/trg_curator_added.jpg}
+    \caption{Проверка триггера добавления факта кураторства}
+    \label{fig:trg-curator-added}
+\end{figure}
+
+\subsection{Триггер: удаление факта кураторства выставки}
+
+Срабатывает на \texttt{AFTER DELETE} по таблице \CuratorsTable{}: у сотрудника сняли кураторство над выставкой, его строка пересчитывается; если курируемых выставок не осталось, строка сотрудника пропадает из таблицы. Текст триггера представлен в Листинге~\ref{lst:trg-curator-removed}.
+
+\lstinputlisting[language=SQL, caption={Триггер удаления факта кураторства}, label={lst:trg-curator-removed}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_curator_removed.sql}
+
+Проверка триггера (состояние \TableName{} до и после) представлена на Рис.\ref{fig:trg-curator-removed}. \par
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=8cm,keepaspectratio]{pic/trg_curator_removed.jpg}
+    \caption{Проверка триггера удаления факта кураторства}
+    \label{fig:trg-curator-removed}
+\end{figure}
+
+\subsection{Триггер: изменение типа выставки}
+
+Срабатывает на \texttt{AFTER UPDATE OF exhibition\_type\_id} по таблице \texttt{exhibitions}: при смене типа выставки меняется число уникальных типов среди курируемых выставок у всех её кураторов, поэтому строки всех этих сотрудников пересчитываются в цикле. Текст триггера представлен в Листинге~\ref{lst:trg-exhibition-type-changed}.
+
+\lstinputlisting[language=SQL, caption={Триггер изменения типа выставки}, label={lst:trg-exhibition-type-changed}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_exhibition_type_changed.sql}
+
+Проверка триггера (состояние \TableName{} до и после) представлена на Рис.\ref{fig:trg-exhibition-type-changed}. \par
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=8cm,keepaspectratio]{pic/trg_exhibition_type_changed.jpg}
+    \caption{Проверка триггера изменения типа выставки}
+    \label{fig:trg-exhibition-type-changed}
+\end{figure}
+
+\subsection{Триггер: изменение данных сотрудника}
+
+Срабатывает на \texttt{AFTER UPDATE OF first\_name, last\_name} по таблице \texttt{employees}: при смене имени или фамилии сотрудника эти же поля синхронизируются в его строке \TableName{}. Счётчики не пересчитываются - смена имени на них не влияет. Текст триггера представлен в Листинге~\ref{lst:trg-employee-renamed}.
+
+\lstinputlisting[language=SQL, caption={Триггер изменения данных сотрудника}, label={lst:trg-employee-renamed}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_employee_renamed.sql}
+
+Проверка триггера (состояние \TableName{} до и после) представлена на Рис.\ref{fig:trg-employee-renamed}. \par
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=8cm,keepaspectratio]{pic/trg_employee_renamed.jpg}
+    \caption{Проверка триггера изменения данных сотрудника}
+    \label{fig:trg-employee-renamed}
+\end{figure}
+
+\subsection{Триггер: удаление выставки}
+
+Срабатывает на \texttt{BEFORE DELETE} по таблице \texttt{exhibitions}: сначала запоминаются id всех кураторов удаляемой выставки, затем убираются их связи в \CuratorsTable{} (несмотря на \texttt{ON DELETE CASCADE}, триггер сам чистит связи заранее, т.к. он \texttt{BEFORE DELETE}, а каскад выполнится только после него), после чего строки задетых сотрудников пересчитываются одним пакетным запросом. Текст триггера представлен в Листинге~\ref{lst:trg-exhibition-deleted}.
+
+\lstinputlisting[language=SQL, caption={Триггер удаления выставки}, label={lst:trg-exhibition-deleted}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_exhibition_deleted.sql}
+
+Проверка триггера (состояние \TableName{} до и после) представлена на Рис.\ref{fig:trg-exhibition-deleted}. \par
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=8cm,keepaspectratio]{pic/trg_exhibition_deleted.jpg}
+    \caption{Проверка триггера удаления выставки}
+    \label{fig:trg-exhibition-deleted}
+\end{figure}
+
+\subsection{Триггер: удаление сотрудника}
+
+Срабатывает на \texttt{AFTER DELETE} по таблице \texttt{employees}: строка удалённого сотрудника убирается из \TableName{} (связи в \CuratorsTable{} к этому моменту уже удалены каскадом). Текст триггера представлен в Листинге~\ref{lst:trg-employee-deleted}.
+
+\lstinputlisting[language=SQL, caption={Триггер удаления сотрудника}, label={lst:trg-employee-deleted}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_employee_deleted.sql}
+
+Проверка триггера (состояние \TableName{} до и после) представлена на Рис.\ref{fig:trg-employee-deleted}. \par
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=8cm,keepaspectratio]{pic/trg_employee_deleted.jpg}
+    \caption{Проверка триггера удаления сотрудника}
+    \label{fig:trg-employee-deleted}
+\end{figure}
+
+\subsection{Схема БД}
+
+Схема базы данных на английском языке с добавленной таблицей \TableName{} и триггерами представлена на Рис.~\ref{db_schema_triggers}. \par
+
+\storeareas\ProgrammingSavedValues
+\clearpage
+\KOMAoptions{
+    paper=a3,
+    paper=landscape,
+    DIV=15,
+    BCOR=0mm,
+    pagesize
+}
+\recalctypearea
+
+\noindent
+\vspace{20pt}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=13.5cm,keepaspectratio]{pic/db_schema_triggers.png}
+    \caption{Схема базы данных на английском языке с учетом триггеров и добавленной таблицы \TableName{}}
+    \label{db_schema_triggers}
+\end{figure}
+
+\clearpage
+\ProgrammingSavedValues
+\recalctypearea
+
+\newpage

@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS exhibition_spaces(
 CREATE TABLE IF NOT EXISTS passports(
     passport_id SERIAL PRIMARY KEY NOT NULL,
 
-    employee_id INT NOT NULL REFERENCES employees(employee_id),
+    employee_id INT NOT NULL REFERENCES employees(employee_id) ON DELETE CASCADE,
     exhibit_id INT NOT NULL REFERENCES exhibits(exhibit_id),
 
     condition_id INT REFERENCES exhibit_conditions(exhibit_conditions_id),
@@ -116,8 +116,8 @@ CREATE TABLE IF NOT EXISTS passports(
 
 CREATE TABLE IF NOT EXISTS  exhibition_curators(
     curator_id SERIAL PRIMARY KEY NOT NULL,
-    employee_id INT NOT NULL REFERENCES employees(employee_id),
-    exhibition_id INT NOT NULL REFERENCES exhibitions(exhibition_id)
+    employee_id INT NOT NULL REFERENCES employees(employee_id) ON DELETE CASCADE,
+    exhibition_id INT NOT NULL REFERENCES exhibitions(exhibition_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS display_places(
@@ -142,6 +142,6 @@ CREATE TABLE IF NOT EXISTS exhibit_materials(
 CREATE TABLE IF NOT EXISTS exhibit_placements(
     exhibit_placement_id SERIAL PRIMARY KEY NOT NULL, 
     exhibit_id INT NOT NULL REFERENCES exhibits(exhibit_id),
-    exhibition_id INT NOT NULL REFERENCES exhibitions(exhibition_id),
+    exhibition_id INT NOT NULL REFERENCES exhibitions(exhibition_id) ON DELETE CASCADE,
     display_place_id INT NOT NULL REFERENCES display_places(display_place_id)
 );

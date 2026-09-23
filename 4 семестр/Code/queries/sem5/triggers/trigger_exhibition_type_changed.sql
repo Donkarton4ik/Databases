@@ -2,28 +2,25 @@
 -- среди курируемых выставок у всех её кураторов, нужно пересчитать
 CREATE OR REPLACE FUNCTION trg_exhibition_type_changed()
 RETURNS TRIGGER AS $$
-DECLARE
-    curator RECORD;
 BEGIN
-    FOR curator IN
-        SELECT DISTINCT employee_id
-        FROM exhibition_curators
-        WHERE exhibition_id = NEW.exhibition_id
-    LOOP
-        DELETE FROM employee_curation_stats_table WHERE employee_id = curator.employee_id;
-
-        INSERT INTO employee_curation_stats_table
-            (employee_id, first_name, last_name, curated_exhibitions_count, curated_exhibition_types_count)
+    -- одним UPDATE пересчитываем сразу всех кураторов этой выставки, без цикла;
+    -- своя выставка у них никуда не делась, поэтому агрегат точно не пуст
+    UPDATE employee_curation_stats_table
+    SET curated_exhibitions_count = affected_with_counts.exhibitions_count,
+        curated_exhibition_types_count = affected_with_counts.types_count
+    FROM (
         SELECT
-            employees.employee_id, employees.first_name, employees.last_name,
-            COUNT(exhibition_curators.exhibition_id),
-            COUNT(DISTINCT exhibitions.exhibition_type_id)
-        FROM employees
-            INNER JOIN exhibition_curators ON exhibition_curators.employee_id = employees.employee_id
+            exhibition_curators.employee_id,
+            COUNT(exhibition_curators.exhibition_id) AS exhibitions_count,
+            COUNT(DISTINCT exhibitions.exhibition_type_id) AS types_count
+        FROM exhibition_curators
             INNER JOIN exhibitions ON exhibitions.exhibition_id = exhibition_curators.exhibition_id
-        WHERE employees.employee_id = curator.employee_id
-        GROUP BY employees.employee_id, employees.first_name, employees.last_name;
-    END LOOP;
+        WHERE exhibition_curators.employee_id IN (
+            SELECT employee_id FROM exhibition_curators WHERE exhibition_id = NEW.exhibition_id
+        )
+        GROUP BY exhibition_curators.employee_id
+    ) AS affected_with_counts
+    WHERE employee_curation_stats_table.employee_id = affected_with_counts.employee_id;
 
     RETURN NEW;
 END;

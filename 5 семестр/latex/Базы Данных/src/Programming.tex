@@ -23,7 +23,7 @@
 Реляционная формула представления:
 \[
 \begin{gathered}
-R_{view1} =
+R =
 \gamma_{\substack{\text{employee\_id}, \text{first\_name}, \text{last\_name}; \\ \text{COUNT}(\text{distinct } \text{exhibition\_id}), \\ \text{COUNT}(\text{distinct } \text{exhibition\_type\_id})}}
 \left(
 \begin{gathered}
@@ -48,16 +48,15 @@ R_{view1} =
 Реляционная формула запроса:
 \[
 \begin{gathered}
-T =
-\sigma_{\substack{\text{curated\_exhibitions\_count} \ > \ 3 \ \land \\ \text{curated\_exhibition\_types\_count} \ > \ 1}}
+R =
+\pi_{\substack{\text{first\_name}, \, \text{last\_name}, \\ \text{curated\_exhibitions\_count}, \\ \text{curated\_exhibition\_types\_count}}}
 \left(
-\text{employee\_curation\_stats}
-\right), \\
-R_{view2} =
-\pi_{\substack{\text{first\_name}, \text{last\_name}, \\ \text{curated\_exhibitions\_count}, \text{curated\_exhibition\_types\_count}}}
+\sigma_{\substack{\text{cur\_exhibitions\_count} > 3 \ \land \\ \text{cur\_exhibition\_types\_count} > 1}}
 \left(
-T
+\text{ECS}
 \right)
+\right), \\
+\text{где ECS - это employee\_curation\_stats}
 \end{gathered}
 \]
 
@@ -93,17 +92,15 @@ T
 Реляционная формула запроса:
 \[
 \begin{gathered}
-T =
+R =
+\pi_{\substack{\text{passport\_id}, \text{first\_name}, \\ \text{last\_name}, \\ \text{curated\_exhibitions\_count}}}
+\left(
 \sigma_{\text{curated\_exhibitions\_count} \ \geq \ 2}
 \left(
-\text{passports} \ \bowtie_{\text{employee\_id}} \ \text{employee\_curation\_stats}
+\text{passports} \ \bowtie_{\text{employee\_id}} \ \text{ECS}
+\right)
 \right), \\
-R_{view3} =
-\pi_{\substack{\text{passport\_id}, \text{first\_name}, \\ \text{last\_name}, \text{curated\_exhibitions\_count}}}
-\left(
-T
-\right), \\
-\text{где } \bowtie \text{ --- это natural join}
+\text{где } \bowtie \text{ - это natural join, ECS - это employee\_curation\_stats}
 \end{gathered}
 \]
 
@@ -153,6 +150,33 @@ T
     \item удаление сотрудника.
 \end{enumerate}
 
+\vspace{8pt}
+
+Сформированы тестовые примеры, покрывающие все варианты изменения данных исходных таблиц. Результаты выполнения различных действий, влияющих на \TableName{} посредством триггеров, представлены в Таблице~\ref{tab:trigger-test-cases}.
+
+\begin{table}[H]
+\centering
+\caption{Примеры работы триггеров}
+\label{tab:trigger-test-cases}
+\begin{tabularx}{\textwidth}{|c|L|}
+\hline
+\textbf{№} & \textbf{Действие} \\
+\hline
+1 & Добавление факта кураторства выставки (\texttt{INSERT} в \CuratorsTable{}). Если строки сотрудника в \TableName{} ещё не было, создаётся новая. Если строка уже была, счётчики пересчитываются. \\
+\hline
+2 & Удаление факта кураторства выставки (\texttt{DELETE} из \CuratorsTable{}). Счётчики сотрудника в \TableName{} пересчитываются. Если курируемых выставок не осталось, строка удаляется. \\
+\hline
+3 & Изменение типа выставки (\texttt{UPDATE exhibition\_type\_id} в \texttt{exhibitions}). У всех кураторов этой выставки пересчитывается \texttt{curated\_exhibition\_types\_count} в \TableName{}. \\
+\hline
+4 & Изменение данных сотрудника (\texttt{UPDATE first\_name, last\_name} в \texttt{employees}). В \TableName{} синхронизируются имя и фамилия сотрудника. \\
+\hline
+5 & Удаление выставки (\texttt{DELETE} из \texttt{exhibitions}). У всех её кураторов пересчитываются счётчики в \TableName{}. Если у кого-то выставок не осталось, его строка удаляется. \\
+\hline
+6 & Удаление сотрудника (\texttt{DELETE} из \texttt{employees}). Соответствующая строка удаляется из \TableName{}. \\
+\hline
+\end{tabularx}
+\end{table}
+
 \subsection{Таблица}
 
 Таблица \TableName{} создана на основе представления \\ \ViewName{} и содержит те же поля: идентификатор и имя сотрудника, число курируемых им выставок и число уникальных типов среди них. Текст создания таблицы представлен в Листинге~\ref{lst:trigger-table}.
@@ -177,7 +201,7 @@ T
 
 \subsection{Триггер: удаление факта кураторства выставки}
 
-Срабатывает на \texttt{AFTER DELETE} по таблице \CuratorsTable{}: у сотрудника сняли кураторство над выставкой, его строка пересчитывается; если курируемых выставок не осталось, строка сотрудника пропадает из таблицы. Текст триггера представлен в Листинге~\ref{lst:trg-curator-removed}.
+Срабатывает на \texttt{AFTER DELETE} по таблице \CuratorsTable{}: у сотрудника сняли кураторство над выставкой, его строка пересчитывается. Если курируемых выставок не осталось, строка сотрудника пропадает из таблицы. Текст триггера представлен в Листинге~\ref{lst:trg-curator-removed}.
 
 \lstinputlisting[language=SQL, caption={Триггер удаления факта кураторства}, label={lst:trg-curator-removed}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_curator_removed.sql}
 
@@ -192,7 +216,7 @@ T
 
 \subsection{Триггер: изменение типа выставки}
 
-Срабатывает на \texttt{AFTER UPDATE OF exhibition\_type\_id} по таблице \texttt{exhibitions}: при смене типа выставки меняется число уникальных типов среди курируемых выставок у всех её кураторов, поэтому строки всех этих сотрудников пересчитываются в цикле. Текст триггера представлен в Листинге~\ref{lst:trg-exhibition-type-changed}.
+Срабатывает на \texttt{AFTER UPDATE OF exhibition\_type\_id} по таблице \texttt{exhibitions}: при смене типа выставки меняется число уникальных типов среди курируемых выставок у всех её кураторов, поэтому строки всех этих сотрудников пересчитываются одним запросом \texttt{UPDATE}. Текст триггера представлен в Листинге~\ref{lst:trg-exhibition-type-changed}.
 
 \lstinputlisting[language=SQL, caption={Триггер изменения типа выставки}, label={lst:trg-exhibition-type-changed}, basicstyle=\ttfamily\footnotesize]{queries_triggers/trigger_exhibition_type_changed.sql}
 

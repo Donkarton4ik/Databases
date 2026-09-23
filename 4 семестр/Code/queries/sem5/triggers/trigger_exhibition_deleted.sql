@@ -5,36 +5,36 @@ RETURNS TRIGGER AS $$
 DECLARE
     affected_employees INT[];
 BEGIN
-    --запоминаем ID всех кураторов этой выставки
+    -- запоминаем ID всех кураторов этой выставки, пока связи ещё не удалены
     SELECT ARRAY_AGG(DISTINCT employee_id)
     INTO affected_employees
     FROM exhibition_curators
     WHERE exhibition_id = OLD.exhibition_id;
 
-    --несмотря на ON DELETE CASCADE, чистим сами: триггер BEFORE DELETE, а каскад
-    --выполнится только после него - без этой строки пересчёт ниже увидит устаревшие связи
+    -- несмотря на ON DELETE CASCADE, чистим сами: триггер BEFORE DELETE, а каскад
+    -- выполнится только после него - без этой строки пересчёт ниже увидит устаревшие связи
     DELETE FROM exhibition_curators WHERE exhibition_id = OLD.exhibition_id;
 
-    IF affected_employees IS NOT NULL THEN
-        --удаляем старую статистику для затронутых кураторов
-        DELETE FROM employee_curation_stats_table
-        WHERE employee_id = ANY(affected_employees);
-
-        --вставляем обновленные данные
-        INSERT INTO employee_curation_stats_table
-            (employee_id, first_name, last_name, curated_exhibitions_count, curated_exhibition_types_count)
+    -- одним UPDATE пересчитываем всех задетых сотрудников, у которых остались другие выставки
+    UPDATE employee_curation_stats_table
+    SET curated_exhibitions_count = affected_with_counts.exhibitions_count,
+        curated_exhibition_types_count = affected_with_counts.types_count
+    -- подзапросом находим задетых сотрудников 
+    FROM (
         SELECT
-            employees.employee_id,
-            employees.first_name,
-            employees.last_name,
-            COUNT(exhibition_curators.exhibition_id),
-            COUNT(DISTINCT exhibitions.exhibition_type_id)
-        FROM employees
-            INNER JOIN exhibition_curators ON exhibition_curators.employee_id = employees.employee_id
+            exhibition_curators.employee_id,
+            COUNT(exhibition_curators.exhibition_id) AS exhibitions_count,
+            COUNT(DISTINCT exhibitions.exhibition_type_id) AS types_count
+        FROM exhibition_curators
             INNER JOIN exhibitions ON exhibitions.exhibition_id = exhibition_curators.exhibition_id
-        WHERE employees.employee_id = ANY(affected_employees)
-        GROUP BY employees.employee_id, employees.first_name, employees.last_name;
-    END IF;
+        WHERE exhibition_curators.employee_id = ANY(affected_employees)
+        GROUP BY exhibition_curators.employee_id
+    ) AS affected_with_counts
+    WHERE employee_curation_stats_table.employee_id = affected_with_counts.employee_id;
+
+    -- DELETE убираем строки тех, у кого выставок больше не осталось
+    DELETE FROM employee_curation_stats_table
+    WHERE employee_id = ANY(affected_employees) AND employee_id NOT IN (SELECT employee_id FROM exhibition_curators);
 
     RETURN OLD;
 END;

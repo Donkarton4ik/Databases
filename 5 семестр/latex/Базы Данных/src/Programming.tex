@@ -303,3 +303,116 @@ R =
 \recalctypearea
 
 \newpage
+
+\noindent
+{\Large \textbf{\section{Лабораторная работа №3 <<Права пользователей>>}}} \par
+\noindent
+
+\subsection{Задача} \noindent
+
+Создать двух пользователей базы данных, обладающих различными правами доступа: \par
+
+\vspace{-5pt}
+
+\begin{enumerate}[noitemsep]
+    \item Пользователь 1 (\texttt{guinea\_pig}) может только просматривать \\ \TableName{}. Ему доступна только операция \texttt{SELECT} из этой таблицы, ко всем остальным таблицам доступа нет.
+    \item Пользователь 2 (\texttt{ex\_curator}) имеет полный доступ (\texttt{SELECT}, \texttt{INSERT}, \texttt{UPDATE}, \texttt{DELETE}) только к тем таблицам, изменения которых влияют на \\\TableName{}. К самой \TableName{} у него есть только право просмотра (\texttt{SELECT}), ко всем остальным таблицам доступа нет.
+\end{enumerate}
+
+\subsection{Обоснование распределения прав}
+
+\noindent
+
+\textbf{Пользователь 1 (\texttt{guinea\_pig})}. Данный пользователь создан для просмотра сводной информация о кураторах выставок (\TableName), он не должен видеть исходные таблицы (например, \texttt{employees} с телефонами сотрудников) и тем более менять их содержимое. Поэтому данному пользователю выдано только право \texttt{SELECT} на одну таблицу. \par
+
+\vspace{8pt}
+
+\textbf{Пользователь 2 (\texttt{ex\_curator}).} Данный пользователь создан для работы с данными, связанными с кураторами выставок: сотрудниками, выставками и фактами кураторства. Так как в таблице \TableName{} агрегируется информация по кураторству, пользователю было выдано право просмотра данной таблицы. Для вставки новых записей в таблицы \texttt{employees}, \texttt{exhibitions} и \\ \CuratorsTable{} ему также выданы права на последовательности (\texttt{SERIAL}) их первичных ключей. Права на запись в \TableName{} у него нет, так как если бы он мог писать в неё напрямую, то значения перестали бы соответствовать реальным данным. В реализованной БД актуальность данных в таблице \TableName \, поддерживается триггерами. \par
+
+\vspace{8pt}
+
+% \textbf{Триггерные функции.} По умолчанию функция триггера выполняется с правами того, кто изменил таблицу. Из-за этого любое изменение таблиц пользователем \texttt{ex\_curator} завершалось бы ошибкой \texttt{permission denied}, потому что триггер не смог бы записать результат в \TableName{}. Чтобы не выдавать пользователю права на запись в агрегат, все шесть триггерных функций выполняются с правами владельца (\texttt{SECURITY DEFINER}). \par
+
+\subsection{Назначение прав} \noindent
+
+Текст SQL-скрипта создания пользователей и назначения прав с комментариями представлен в Листинге~\ref{lst:users-create}. Так как таблицы создавались без указания схем, все они находятся в схеме \texttt{public}, поэтому обоим пользователям выдаётся право \texttt{USAGE} на неё.
+
+\newpage
+
+\lstinputlisting[language=SQL, caption={Создание пользователей и назначение прав}, label={lst:users-create}, basicstyle=\ttfamily\footnotesize, lastline=21]{queries_users/create_users.sql}
+
+\subsection{Тестовые примеры} \noindent
+
+Для проверки прав было сформировано 10 запросов, с операциями \texttt{SELECT}, \texttt{INSERT}, \texttt{UPDATE}, \texttt{DELETE} для таблиц трех видов: таблицы-агрегата, исходных таблиц и посторонней таблицы (\texttt{passports}). Текст запросов представлен в Листинге~\ref{lst:users-test}. Условия в запросах, изменяющих данные, ссылаются на несуществующие или на тестовые записи, поэтому реальные данные не затрагиваются. \par
+
+\lstinputlisting[language=SQL, caption={Тестовые запросы для проверки прав пользователей}, label={lst:users-test}, basicstyle=\ttfamily\footnotesize]{queries_users/test_users.sql}
+
+\subsection{Порядок выполнения и результаты} \noindent
+
+Результаты выполнения тестовых запросов представлены в Таблице~\ref{tab:users-test-results}. \par
+
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Результаты выполнения тестовых запросов для пользователей \texttt{guinea\_pig} и \texttt{ex\_curator}}
+\label{tab:users-test-results}
+\begin{tabular}{|c|P{0.44\textwidth}|P{0.44\textwidth}|}
+\hline
+\textbf{№} & \textbf{guinea\_pig} & \textbf{ex\_curator} \\
+\hline
+1 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{SELECT * FROM }\TableName{}\texttt{ LIMIT 3;}} \\
+\cline{2-3}
+ & Первые 3 строки таблицы & Первые 3 строки таблицы \\
+\hline
+2 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{INSERT INTO }\TableName{}\texttt{ (employee\_id, first\_name, last\_name, curated\_exhibitions\_count, curated\_exhibition\_types\_count) VALUES (999999, 'Гвинея', 'Пиг', 1, 1);}} \\
+\cline{2-3}
+ & \texttt{permission denied for table }\TableName{} & \texttt{permission denied for table }\TableName{} \\
+\hline
+3 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{UPDATE }\TableName{}\texttt{ SET curated\_exhibitions\_count = 100 WHERE employee\_id = 999999;}} \\
+\cline{2-3}
+ & \texttt{permission denied for table }\TableName{} & \texttt{permission denied for table }\TableName{} \\
+\hline
+4 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{DELETE FROM }\TableName{}\texttt{ WHERE employee\_id = 999999;}} \\
+\cline{2-3}
+ & \texttt{permission denied for table }\TableName{} & \texttt{permission denied for table }\TableName{} \\
+\hline
+5 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{SELECT * FROM employees LIMIT 3;}} \\
+\cline{2-3}
+ & \texttt{permission denied for table employees} & Первые 3 строки таблицы \\
+\hline
+6 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{INSERT INTO employees (first\_name, last\_name) VALUES ('ТестИмя', 'ТестФамилия');}} \\
+\cline{2-3}
+ & \texttt{permission denied for table employees} & \texttt{INSERT 0 1} \\
+\hline
+7 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{UPDATE employees SET first\_name = 'ТестИмя2' WHERE last\_name = 'ТестФамилия';}} \\
+\cline{2-3}
+ & \texttt{permission denied for table employees} & \texttt{UPDATE 1} \\
+\hline
+8 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{DELETE FROM employees WHERE last\_name = 'ТестФамилия';}} \\
+\cline{2-3}
+ & \texttt{permission denied for table employees} & \texttt{DELETE 1} \\
+\hline
+9 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{SELECT * FROM passports LIMIT 3;}} \\
+\cline{2-3}
+ & \texttt{permission denied for table passports} & \texttt{permission denied for table passports} \\
+\hline
+10 & \multicolumn{2}{P{\dimexpr 0.88\textwidth+2\tabcolsep\relax}|}{\texttt{DELETE FROM passports WHERE passport\_id = -1;}} \\
+\cline{2-3}
+ & \texttt{permission denied for table passports} & \texttt{permission denied for table passports} \\
+\hline
+\end{tabular}
+\end{table}
+
+Последовательность действий и результат по каждой группе запросов: \par
+
+\vspace{-6pt}
+\begin{enumerate}[noitemsep]
+    \item Запрос 1: чтение \TableName{} разрешено обоим пользователям. Для \texttt{guinea\_pig} это единственная разрешённая операция.
+    \item Запросы 2--4: запись в \TableName{} (\texttt{INSERT}, \texttt{UPDATE}, \texttt{DELETE}) запрещена обоим пользователям. Данные в таблице после запросов не изменились.
+    \item Запросы 5--8: работа с исходными таблицами. Для \texttt{guinea\_pig} все операции запрещены, а \texttt{ex\_curator} успешно выполняет чтение, вставку, изменение и удаление. 
+    \item Запросы 9--10: обращения к посторонней таблице \texttt{passports} запрещены обоим пользователям как на чтение, так и на изменение.
+\end{enumerate}
+
+\newpage

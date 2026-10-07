@@ -370,7 +370,7 @@ R =
 % поэтому маленькие скриншоты увеличиваются сильнее, а широкие занимают всю колонку.
 % параметры trim (в bp, скриншоты имеют разрешение 144 dpi) отрезают от скриншотов обрезки соседних строк сверху и снизу
 \newlength{\shotunit}
-\setlength{\shotunit}{0.3pt}
+\setlength{\shotunit}{0.4pt}
 \newlength{\shotmax}
 \newlength{\shotwidth}
 \newcommand{\shot}[4]{%
@@ -379,66 +379,56 @@ R =
     \includegraphics[width=\shotwidth, trim=0 #4bp 0 #3bp, clip]{pic/#1}%
 }
 
+% клетка реакции пользователя: верх скриншота выравнивается по верху текста запроса, снизу небольшой отступ
+\newcommand{\cell}[1]{\parbox[t]{\shotmax}{\vspace{0pt}\vspace{-0.6\baselineskip}#1\vspace{5pt}}}
+
 \storeareas\UsersSavedValues
 \clearpage
 \KOMAoptions{
-    paper=a4,
+    paper=a2,
     paper=landscape,
-    DIV=30,
+    DIV=36,
     BCOR=0mm,
     pagesize
 }
 \recalctypearea
 
-\begin{table}[H]
-\centering
-\footnotesize
-\setlength{\tabcolsep}{3pt}
-\setlength{\shotmax}{\dimexpr 0.47\textwidth-1pt\relax}
+\begingroup
+\large
+\setlength{\tabcolsep}{8pt}
+\setlength{\extrarowheight}{5pt}
+\setlength{\shotmax}{\dimexpr 0.365\textwidth\relax}
+\begin{longtable}{|c|P{0.205\textwidth}|P{0.365\textwidth}|P{0.365\textwidth}|}
 \caption{Результаты выполнения тестовых запросов для пользователей \texttt{guinea\_pig} и \texttt{ex\_curator}}
-\label{tab:users-test-results}
-\begin{tabular}{|c|P{0.47\textwidth}|P{0.47\textwidth}|}
+\label{tab:users-test-results} \\
 \hline
-\textbf{№} & \textbf{guinea\_pig} & \textbf{ex\_curator} \\
+\textbf{№} & \textbf{Текст SQL-запроса} & \textbf{Реакция пользователя guinea\_pig} & \textbf{Реакция пользователя ex\_curator} \\
 \hline
-1 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{SELECT * FROM }\TableName{}\texttt{ LIMIT 3;}} \\
-\cline{2-3}
- & \shot{pig1}{1618}{4.5}{0.0} & \shot{curator1}{1618}{4.5}{0.0} \\
+\endfirsthead
 \hline
-2 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{INSERT INTO }\TableName{}\texttt{ (employee\_id, first\_name, last\_name, curated\_exhibitions\_count, curated\_exhibition\_types\_count) VALUES (999999, 'ТестИмя', 'ТестФамилия', 1, 1);}} \\
-\cline{2-3}
- & \shot{pig2}{1612}{0.0}{0.0} & \shot{curator2}{1612}{0.0}{0.0} \\
+\textbf{№} & \textbf{Текст SQL-запроса} & \textbf{Реакция пользователя guinea\_pig} & \textbf{Реакция пользователя ex\_curator} \\
 \hline
-3 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{UPDATE }\TableName{}\texttt{ SET curated\_exhibitions\_count = 100 WHERE employee\_id = 999999;}} \\
-\cline{2-3}
- & \shot{pig3}{1806}{3.5}{0.0} & \shot{curator3}{1806}{3.5}{0.0} \\
+\endhead
+1 & \texttt{SELECT * FROM }\TableName{}\texttt{ LIMIT 3;} & \cell{\shot{pig1}{1618}{4.5}{0.0}} & \cell{\shot{curator1}{1618}{4.5}{0.0}} \\
 \hline
-4 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{DELETE FROM }\TableName{}\texttt{ WHERE employee\_id = 999999;}} \\
-\cline{2-3}
- & \shot{pig4}{1334}{4.5}{0.0} & \shot{curator4}{1334}{4.5}{0.0} \\
+2 & \texttt{INSERT INTO }\TableName{}\texttt{ (employee\_id, first\_name, last\_name, curated\_exhibitions\_count, curated\_exhibition\_types\_count) VALUES (999999, 'ТестИмя', 'ТестФамилия', 1, 1);} & \cell{\shot{pig2}{1612}{0.0}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig2}{1624}{0.0}{0.0}} & \cell{\shot{curator2}{1612}{0.0}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig2}{1624}{0.0}{0.0}} \\
 \hline
-5 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{INSERT INTO employees (first\_name, last\_name) VALUES ('ТестИмя', 'ТестФамилия');}} \\
-\cline{2-3}
- & \shot{pig5}{1500}{2.5}{2.0} & \shot{curator5}{1490}{0.0}{5.0} \\
+3 & \texttt{UPDATE }\TableName{}\texttt{ SET curated\_exhibitions\_count = 100 WHERE employee\_id = 999999;} & \cell{\shot{pig3}{1806}{3.5}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig3}{1616}{0.0}{0.0}} & \cell{\shot{curator3}{1806}{3.5}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig3}{1616}{0.0}{0.0}} \\
 \hline
-6 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{UPDATE employees SET first\_name = 'ТестИмя2' WHERE last\_name = 'ТестФамилия';}} \\
-\cline{2-3}
- & \shot{pig6}{1456}{4.5}{3.0} & \shot{curator6}{1456}{0.0}{0.0} \\
+4 & \texttt{DELETE FROM }\TableName{}\texttt{ WHERE employee\_id = 1;} & \cell{\shot{pig4}{1334}{4.5}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig4}{1606}{0.0}{0.0}} & \cell{\shot{curator4}{1334}{4.5}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig4}{1606}{0.0}{0.0}} \\
 \hline
-7 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{DELETE FROM employees WHERE last\_name = 'ТестФамилия';}} \\
-\cline{2-3}
- & \shot{pig7}{1096}{5.5}{1.0} & \shot{curator7}{1076}{0.0}{0.0} \\
+5 & \texttt{INSERT INTO employees (first\_name, last\_name) VALUES ('ТестИмя', 'ТестФамилия');} & \cell{\shot{pig5}{1500}{2.5}{2.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig5}{1120}{0.0}{0.0}} & \cell{\shot{curator5}{1490}{0.0}{5.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_ex_curator5}{1138}{0.0}{0.0}} \\
 \hline
-8 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{SELECT * FROM passports LIMIT 3;}} \\
-\cline{2-3}
- & \shot{pig8}{738}{0.0}{0.0} & \shot{curator8}{738}{0.0}{0.0} \\
+6 & \texttt{UPDATE employees SET first\_name = 'ТестИмя2' WHERE last\_name = 'ТестФамилия';} & \cell{\shot{pig6}{1456}{4.5}{3.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_ex_curator5}{1138}{0.0}{0.0}} & \cell{\shot{curator6}{1456}{0.0}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_ex_curator6}{1150}{0.0}{0.0}} \\
 \hline
-9 & \multicolumn{2}{P{\dimexpr 0.94\textwidth+2\tabcolsep\relax}|}{\texttt{DELETE FROM passports WHERE passport\_id = 3;}} \\
-\cline{2-3}
- & \shot{pig9}{926}{4.5}{4.0} & \shot{curator9}{926}{4.5}{4.0} \\
+7 & \texttt{DELETE FROM employees WHERE last\_name = 'ТестФамилия';} & \cell{\shot{pig7}{1096}{5.5}{1.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_ex_curator5}{1138}{0.0}{0.0}} & \cell{\shot{curator7}{1076}{0.0}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_ex_curator7}{1130}{0.0}{0.0}} \\
 \hline
-\end{tabular}
-\end{table}
+8 & \texttt{SELECT * FROM passports LIMIT 3;} & \cell{\shot{pig8}{738}{0.0}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig8}{1454}{0.0}{0.0}} & \cell{\shot{curator8}{738}{0.0}{0.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig8}{1454}{0.0}{0.0}} \\
+\hline
+9 & \texttt{DELETE FROM passports WHERE passport\_id = 3;} & \cell{\shot{pig9}{926}{4.5}{4.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig9}{1460}{0.0}{0.0}} & \cell{\shot{curator9}{926}{4.5}{4.0}\par\vspace{2pt}Проверка результата:\par\vspace{2pt}\shot{select_pig9}{1460}{0.0}{0.0}} \\
+\hline
+\end{longtable}
+\endgroup
 
 \clearpage
 \UsersSavedValues

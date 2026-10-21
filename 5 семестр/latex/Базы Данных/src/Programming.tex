@@ -436,3 +436,94 @@ R =
 
 
 \newpage
+
+\noindent
+{\Large \textbf{\section{Лабораторная работа №4 <<Транзакции>>}}} \par
+\noindent
+
+\subsection{Задача} \noindent
+
+Выбрать уровень изоляции транзакций и аномалию. 
+Сформировать сценарий из двух параллельных транзакций А и Б, подтверждающий наличие или отсутствие аномалии на выбранном уровне изоляции.
+Выполнить его в СУБД и обосновать полученный результат. \par
+
+
+\subsection{Сценарий} \noindent
+
+Был выбран уровень изоляции \texttt{READ COMMITTED}, аномалия - фантомное чтение. 
+Фантомное чтение - ситуация, при которой внутри одной транзакции дважды выполняется выборка по одинаковому условию, а между ними в другой транзакции добавляются и фиксируются строки, удовлетворяющие этому условию. 
+Из-за этого повторная выборка возвращает другой набор строк. \par
+
+\vspace{6pt}
+
+\textbf{Текст сценария:} В транзакции А дважды подсчитывается число записей о кураторстве сотрудника с \texttt{employee\_id = 1} в таблице \CuratorsTable{}. 
+Между этими подсчётами в транзакции Б сотрудник назначается куратором ещё одной выставки, при этом транзакция Б фиксируется. Требуется определить, изменится ли результат повторного подсчёта в транзакции А. \par
+
+Текст запросов, реализующих сценарий представлен в Листинге~\ref{lst:phantom}. \par
+
+\vspace{8pt}
+
+\lstinputlisting[language=SQL, caption={Сценарий фантомного чтения при изоляции на уровне READ COMMITTED}, label={lst:phantom}, basicstyle=\ttfamily\footnotesize]{queries_transactions/phantom_read.sql}
+
+\subsection{Порядок выполнения и результат} \noindent
+
+Результат выполнения транзакций представлен в Таблице~\ref{tab:phantom}. \par
+
+\subsection{Обоснование результата} \noindent
+
+В первой транзакции был выполнен запрос на получение числа выставок сотрудника с \texttt{employee\_id = 1} из таблицы \CuratorsTable{}, результат: 4.
+Во второй транзакции была успешно выполнена вставка строки в \CuratorsTable{}, а сама транзакция зафиксирована. 
+После этого повторный запрос в первой транзакции вернул 5. Так как результат в первой транзакции изменился, наблюдается фантомное чтение при уровне изоляции \texttt{READ COMMITTED}. \par
+
+
+\clearpage
+\KOMAoptions{
+    paper=a4,
+    paper=landscape,
+    DIV=36,
+    BCOR=0mm,
+    pagesize
+}
+\recalctypearea
+
+\begingroup
+\large
+\setlength{\tabcolsep}{8pt}
+\setlength{\extrarowheight}{5pt}
+% прочерк для пустых ячеек, крупный и по центру
+% отступы сверху и снизу скриншота
+\newcommand{\padded}[1]{\leavevmode\vbox{\kern8pt\hbox{#1}\kern8pt}}
+\newcommand{\nodash}{\makebox[\linewidth][c]{\rule[0.3em]{1.5cm}{3pt}}}
+\setlength{\shotmax}{\dimexpr 0.43\textwidth\relax}
+\begin{longtable}{|m{1cm}<{\centering}|>{\centering\arraybackslash}m{0.43\textwidth}|>{\centering\arraybackslash}m{0.43\textwidth}|}
+\caption{Выполнение сценария фантомного чтения на уровне \texttt{READ COMMITTED}}
+\label{tab:phantom} \\ 
+\hline
+\textbf{№} & \textbf{Действия транзакции А} & \textbf{Действия транзакции Б} \\
+\hline
+\endfirsthead
+\hline
+\textbf{№} & \textbf{Действия транзакции А} & \textbf{Действия транзакции Б} \\
+\hline
+\endhead
+1 & \padded{\shot{trans1}{822}{0.0}{3.0}} & \nodash{} \\
+\hline
+2 & \padded{\shot{trans2}{1266}{0.0}{0.0}} & \nodash{} \\
+\hline
+3 & \nodash{} & \padded{\shot{trans1}{822}{0.0}{3.0}} \\
+\hline
+4 & \nodash{} & \padded{\shot{trans3}{1440}{0.0}{0.0}} \\
+\hline
+5 & \nodash{} & \padded{\shot{trans4}{360}{0.0}{0.0}} \\
+\hline
+6 & \padded{\shot{trans5}{1274}{0.0}{0.0}} & \nodash{} \\
+\hline
+7 & \padded{\shot{trans4}{360}{0.0}{0.0}} & \nodash{} \\
+\hline
+\end{longtable}
+\endgroup
+
+\clearpage
+\UsersSavedValues
+\recalctypearea
+
